@@ -1,0 +1,177 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 1. RESTORE BASE WORKSPACE BACKGROUND SYSTEM LOGS */
+body {
+  background-color: #F8FAFC;
+  margin: 0;
+}
+
+/* 2. CONSOLIDATED LAYOUT CONTAINER SPECIFICATIONS */
+:root {
+  --text: #6b6375;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    font-size: 16px;
+  }
+}
+
+/* 3. DYNAMIC ACTIVE PORTAL CLASS THEME CHIP MAPS */
+.light-theme-mode {
+  --bg-main: #F5F7FB;
+  --bg-card: #FFFFFF;
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+  --border-color: #E2E8F0;
+}
+
+.dark-theme-mode {
+  --bg-main: #0B132B;
+  --bg-card: #1C2541;
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --border-color: #3A405A;
+}
+
+/* 4. DEFENSIVE HOOK: FORCED SOLID BLACK OVERRIDE MATRICES FOR ALL HEADINGS */
+h1, h2, h3, h4, h5, h6,
+[class*="text-slate-900"],
+[class*="text-slate-800"],
+[class*="text-[#0B1F5B]"],
+.light-theme-mode h1, .light-theme-mode h2, .light-theme-mode h3, .light-theme-mode h4,
+.dark-theme-mode h1, .dark-theme-mode h2, .dark-theme-mode h3, .dark-theme-mode h4 {
+  font-family: var(--heading) !important;
+  color: #000000 !important; /* Absolute deep solid black render path */
+}
+
+/* 5. TYPOGRAPHY DIMENSIONS AND WEIGHT STRUCTURING */
+h1 {
+  font-size: 56px;
+  font-weight: 500;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+}
+
+@media (max-width: 1024px) {
+  h1 {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+}
+
+@media (max-width: 1024px) {
+  h2 {
+    font-size: 20px;
+  }
+}
+
+p {
+  margin: 0;
+}
+
+/* 6. TECHNICAL UTILITY CONTAINER ELEMENT OVERRIDES */
+#root {
+  width: 1126px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+code, .counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+  color: var(--text);
+}
+
+/* 7. PRESERVE THEMATIC DESKTOP BACKGROUND HOOKS */
+.dark-theme-mode .min-h-screen,
+.dark-theme-mode main {
+  background-color: var(--bg-main) !important;
+}
+
+.dark-theme-mode .bg-white,
+.dark-theme-mode .bg-white\/50 {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-theme-mode p,
+.dark-theme-mode span,
+.dark-theme-mode .text-slate-500,
+.dark-theme-mode .text-slate-400 {
+  color: var(--text-muted) !important;
+}
+
+.dark-theme-mode input,
+.dark-theme-mode select,
+.dark-theme-mode textarea {
+  background-color: #0B132B !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+
+.dark-theme-mode .border,
+.dark-theme-mode .border-b,
+.dark-theme-mode .border-t {
+  border-color: var(--border-color) !important;
+}
+/* src/index.css — Add directly below your heading colors section */
+
+/* Exception layout rule: Force sidebar specific text components to stay white */
+aside h1, aside h2, aside h3, aside h4,
+aside span, aside button,
+.bg-\[\#0B1E46\] h2, .bg-\[\#0B1E46\] span {
+  color: #FFFFFF !important; /* Lock branding typography to solid white */
+}
+
+aside span.text-slate-400,
+.bg-\[\#0B1E46\] span.text-slate-400 {
+  color: #94A3B8 !important; /* Retain clean muted slate contrast for subtitles */
+}
