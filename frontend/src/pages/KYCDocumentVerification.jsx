@@ -227,8 +227,8 @@ export default function KYCDocumentVerification() {
           {/* SECTION 2 — IDENTITY MATRIX SECTION TABLE */}
           <div className="space-y-2">
             <span className="text-[10px] font-black uppercase text-[#0B1F5B] tracking-widest block border-b border-slate-100 pb-1.5 select-none">Section 2 — Identity Verification Matrix</span>
-            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-3xs w-full overflow-x-auto">
-              <table className="w-full text-xs text-left text-slate-600 min-w-[500px] border-collapse">
+            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-3xs w-full">
+              <table className="hidden sm:table w-full text-xs text-left text-slate-600 border-collapse">
                 <thead>
                   <tr className="bg-slate-50 font-black text-[9px] text-slate-400 uppercase border-b tracking-wider select-none">
                     <th className="p-2.5 pl-4 w-[40%]">Document Type Required</th>
@@ -259,14 +259,36 @@ export default function KYCDocumentVerification() {
                   ))}
                 </tbody>
               </table>
+
+              {/* MOBILE STACKED CARDS VIEW */}
+              <div className="sm:hidden divide-y divide-slate-100 bg-white">
+                {[
+                  { key: 'panCard', label: 'PAN Card Proof', req: true },
+                  { key: 'aadhaarCard', label: 'Aadhaar Card Proof', req: true },
+                  { key: 'passport', label: 'Passport Scan', req: false },
+                  { key: 'drivingLicense', label: 'Driving License Scan', req: false }
+                ].map((doc) => (
+                  <div key={doc.key} className="p-3.5 flex flex-col gap-2">
+                    <div className="flex justify-between items-start">
+                      <span className="text-slate-950 font-bold text-xs">{doc.label} {doc.req && <span className="text-rose-500 font-black">*</span>}</span>
+                      {documentsState[doc.key] ? (
+                        <span className="text-emerald-750 font-black text-[10px] flex items-center gap-0.5"><Check className="w-3 h-3 text-emerald-500 shrink-0" /> Uploaded</span>
+                      ) : (
+                        <span className={`text-[9px] font-black uppercase ${doc.req ? 'text-amber-600' : 'text-slate-400 font-medium'}`}>{doc.req ? 'Pending' : 'Optional'}</span>
+                      )}
+                    </div>
+                    <button type="button" onClick={() => simulateDocumentUpload(doc.key)} className="w-full h-8 border bg-white rounded-xl font-bold text-[11px] text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"><Upload className="w-3.5 h-3.5 text-slate-400" /><span>Upload</span></button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* SECTION 3 — ADDRESS MATRIX SECTION TABLE */}
           <div className="space-y-2">
             <span className="text-[10px] font-black uppercase text-[#0B1F5B] tracking-widest block border-b border-slate-100 pb-1.5 select-none">Section 3 — Address Verification Matrix</span>
-            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-3xs w-full overflow-x-auto">
-              <table className="w-full text-xs text-left text-slate-600 min-w-[500px] border-collapse">
+            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-3xs w-full">
+              <table className="hidden sm:table w-full text-xs text-left text-slate-600 border-collapse">
                 <thead>
                   <tr className="bg-slate-50 font-black text-[9px] text-slate-400 uppercase border-b tracking-wider select-none">
                     <th className="p-2.5 pl-4 w-[40%]">Document Type</th>
@@ -297,6 +319,28 @@ export default function KYCDocumentVerification() {
                   ))}
                 </tbody>
               </table>
+
+              {/* MOBILE STACKED CARDS VIEW */}
+              <div className="sm:hidden divide-y divide-slate-100 bg-white">
+                {[
+                  { key: 'aadhaarAddress', label: 'Aadhaar Address Print Match', req: true },
+                  { key: 'utilityBill', label: 'Utility Electricity Bill Scan', req: false },
+                  { key: 'bankStatement', label: 'Bank Statement / Passbook page', req: false },
+                  { key: 'rentalAgreement', label: 'Registered Rental Agreement', req: false }
+                ].map((doc) => (
+                  <div key={doc.key} className="p-3.5 flex flex-col gap-2">
+                    <div className="flex justify-between items-start">
+                      <span className="text-slate-950 font-bold text-xs">{doc.label} {doc.req && <span className="text-rose-500 font-black">*</span>}</span>
+                      {documentsState[doc.key] ? (
+                        <span className="text-emerald-750 font-black text-[10px] flex items-center gap-0.5"><Check className="w-3 h-3 text-emerald-500 shrink-0" /> Uploaded</span>
+                      ) : (
+                        <span className={`text-[9px] font-black uppercase ${doc.req ? 'text-amber-600' : 'text-slate-400 font-medium'}`}>{doc.req ? 'Pending' : 'Optional'}</span>
+                      )}
+                    </div>
+                    <button type="button" onClick={() => simulateDocumentUpload(doc.key)} className="w-full h-8 border bg-white rounded-xl font-bold text-[11px] text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"><Upload className="w-3.5 h-3.5 text-slate-400" /><span>Verify</span></button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -306,8 +350,8 @@ export default function KYCDocumentVerification() {
               <span className="text-[10px] font-black uppercase text-[#0B1F5B] tracking-widest block">Section 4 — Financial Documents</span>
               <div className="text-right text-[10px] font-black uppercase text-slate-400">Income Status: <span className="text-amber-600 font-black">Pending</span></div>
             </div>
-            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-3xs w-full overflow-x-auto">
-              <table className="w-full text-xs text-left text-slate-600 min-w-[500px] border-collapse">
+            <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-3xs w-full">
+              <table className="hidden sm:table w-full text-xs text-left text-slate-600 border-collapse">
                 <thead>
                   <tr className="bg-slate-50 font-black text-[9px] text-slate-400 uppercase border-b tracking-wider select-none">
                     <th className="p-2.5 pl-4 w-[40%]">Financial Proof Slabs</th>
@@ -338,6 +382,28 @@ export default function KYCDocumentVerification() {
                   ))}
                 </tbody>
               </table>
+
+              {/* MOBILE STACKED CARDS VIEW */}
+              <div className="sm:hidden divide-y divide-slate-100 bg-white">
+                {[
+                  { key: 'salarySlips', label: 'Salary Slips (Last 3 Months Slabs)' },
+                  { key: 'form16', label: 'Form 16 Certificate Assessment' },
+                  { key: 'itrDoc', label: 'Income Tax Returns (ITR Acknowledgement)' },
+                  { key: 'bankStatementFinancial', label: 'Operating Bank Statement (6 Months)' }
+                ].map((doc) => (
+                  <div key={doc.key} className="p-3.5 flex flex-col gap-2">
+                    <div className="flex justify-between items-start">
+                      <span className="text-slate-950 font-bold text-xs">{doc.label} <span className="text-rose-500 font-black">*</span></span>
+                      {documentsState[doc.key] ? (
+                        <span className="text-emerald-750 font-black text-[10px] flex items-center gap-0.5"><Check className="w-3 h-3 text-emerald-500 shrink-0" /> Uploaded</span>
+                      ) : (
+                        <span className="text-amber-600 text-[9px] font-black uppercase">Pending</span>
+                      )}
+                    </div>
+                    <button type="button" onClick={() => simulateDocumentUpload(doc.key)} className="w-full h-8 border bg-white rounded-xl font-bold text-[11px] text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"><Upload className="w-3.5 h-3.5 text-slate-400" /><span>Upload</span></button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

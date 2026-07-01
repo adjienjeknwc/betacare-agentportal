@@ -94,31 +94,34 @@ export default function PolicyIssuanceCenter() {
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>Approval Status & Contract Identifiers</span>
             </div>
-            <div className="border border-slate-100 rounded-xl overflow-hidden bg-white">
-              <table className="w-full text-xs text-slate-600 border-collapse">
-                <tbody className="divide-y divide-slate-100 font-semibold">
-                  <tr className="hover:bg-slate-50/30">
-                    <td className="p-2.5 pl-4 text-slate-400 text-[10px] uppercase font-black w-[35%]">Proposal Number</td>
-                    <td className="p-2.5 text-slate-900 font-mono text-left w-[30%]">{policyCoreData.proposalNo}</td>
-                    <td className="p-2.5 text-slate-400 text-[10px] uppercase font-black w-[20%]">Application No</td>
-                    <td className="p-2.5 text-slate-900 font-mono text-right w-[15%]">{policyCoreData.applicationNo}</td>
-                  </tr>
-                  <tr className="hover:bg-slate-50/30">
-                    <td className="p-2.5 pl-4 text-slate-400 text-[10px] uppercase font-black">Issued Policy Contract No</td>
-                    <td className="p-2.5 text-[#0B1F5B] font-mono font-black text-left">{policyCoreData.policyNo}</td>
-                    <td className="p-2.5 text-slate-400 text-[10px] uppercase font-black">Approval Date</td>
-                    <td className="p-2.5 text-slate-900 font-bold text-right">{currentDateString}</td>
-                  </tr>
-                  <tr className="bg-emerald-50/20">
-                    <td className="p-2.5 pl-4 text-slate-400 text-[10px] uppercase font-black">Current Policy Status</td>
-                    <td className="p-2.5 text-left">
-                      <span className="text-emerald-700 bg-emerald-50 border border-emerald-100 font-black px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wide">Active</span>
-                    </td>
-                    <td className="p-2.5 text-slate-400 text-[10px] uppercase font-black">Decision Case</td>
-                    <td className="p-2.5 text-emerald-600 font-black text-right uppercase text-[10px]">Approved</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="border border-slate-100 rounded-xl bg-white p-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold text-left">
+                <div>
+                  <span className="text-slate-400 text-[9px] uppercase font-black block leading-tight">Proposal Number</span>
+                  <span className="text-slate-900 font-mono block mt-1">{policyCoreData.proposalNo}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[9px] uppercase font-black block leading-tight">Application No</span>
+                  <span className="text-slate-900 font-mono block mt-1">{policyCoreData.applicationNo}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[9px] uppercase font-black block leading-tight">Issued Contract No</span>
+                  <span className="text-[#0B1F5B] font-mono font-black block mt-1">{policyCoreData.policyNo}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[9px] uppercase font-black block leading-tight">Approval Date</span>
+                  <span className="text-slate-900 font-bold block mt-1">{currentDateString}</span>
+                </div>
+                
+                <div className="col-span-2 border-t border-slate-100 pt-3">
+                  <span className="text-slate-400 text-[9px] uppercase font-black block leading-tight">Current Policy Status</span>
+                  <span className="inline-block text-emerald-700 bg-emerald-50 border border-emerald-100 font-black px-2 py-0.5 rounded text-[10px] uppercase tracking-wide mt-1">Active</span>
+                </div>
+                <div className="col-span-2 border-t border-slate-100 pt-3">
+                  <span className="text-slate-400 text-[9px] uppercase font-black block leading-tight">Decision Case</span>
+                  <span className="text-emerald-600 font-black block mt-1.5 uppercase text-[10px]">Approved</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -128,29 +131,34 @@ export default function PolicyIssuanceCenter() {
               <FileCheck className="w-4 h-4 shrink-0" />
               <span>Policy Terms & Parameters Structure</span>
             </div>
-            <div className="border border-slate-100 rounded-xl overflow-hidden bg-white">
-              <table className="w-full text-xs text-slate-600 border-collapse">
-                <tbody className="divide-y divide-slate-100 font-semibold">
-                  <tr className="hover:bg-slate-50/30">
-                    <td className="p-2.5 pl-4 text-slate-400 text-[10px] uppercase font-black w-[35%]">Sum Assured Risk Cap</td>
-                    <td className="p-2.5 text-[#0B1F5B] font-black text-left w-[30%]">{policyCoreData.sumAssured}</td>
-                    <td className="p-2.5 text-slate-400 text-[10px] uppercase font-black w-[20%]">Policy Coverage Term</td>
-                    <td className="p-2.5 text-slate-900 font-bold text-right w-[15%]">{policyCoreData.term}</td>
-                  </tr>
-                  <tr className="hover:bg-slate-50/30">
-                    <td className="p-2.5 pl-4 text-slate-400 text-[10px] uppercase font-black">Premium Payment Term PPT</td>
-                    <td className="p-2.5 text-slate-900 text-left">{policyCoreData.ppt}</td>
-                    <td className="p-2.5 text-slate-400 text-[10px] uppercase font-black">Collection Interval</td>
-                    <td className="p-2.5 text-slate-900 font-extrabold text-right">{policyCoreData.frequency}</td>
-                  </tr>
-                  <tr className="hover:bg-slate-50/30">
-                    <td className="p-2.5 pl-4 text-slate-400 text-[10px] uppercase font-black">Commencement Date</td>
-                    <td className="p-2.5 text-slate-900 text-left">{currentDateString}</td>
-                    <td className="p-2.5 text-slate-400 text-[10px] uppercase font-black">Next Due Date</td>
-                    <td className="p-2.5 text-[#0B1F5B] font-black text-right">{nextPremiumDueDate}</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="border border-slate-100 rounded-xl bg-white p-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold text-left">
+                <div>
+                  <span className="text-slate-400 text-[9px] uppercase font-black block leading-tight">Sum Assured Risk Cap</span>
+                  <span className="text-[#0B1F5B] font-black block mt-1">{policyCoreData.sumAssured}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[9px] uppercase font-black block leading-tight">Policy Coverage Term</span>
+                  <span className="text-slate-900 font-bold block mt-1">{policyCoreData.term}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[9px] uppercase font-black block leading-tight">Premium Payment Term PPT</span>
+                  <span className="text-slate-900 block mt-1">{policyCoreData.ppt}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 text-[9px] uppercase font-black block leading-tight">Collection Interval</span>
+                  <span className="text-slate-900 font-extrabold block mt-1">{policyCoreData.frequency}</span>
+                </div>
+                
+                <div className="col-span-2 border-t border-slate-100 pt-3">
+                  <span className="text-slate-400 text-[9px] uppercase font-black block leading-tight">Commencement Date</span>
+                  <span className="text-slate-900 block mt-1">{currentDateString}</span>
+                </div>
+                <div className="col-span-2 border-t border-slate-100 pt-3">
+                  <span className="text-slate-400 text-[9px] uppercase font-black block leading-tight">Next Due Date</span>
+                  <span className="text-[#0B1F5B] font-black block mt-1">{nextPremiumDueDate}</span>
+                </div>
+              </div>
             </div>
           </div>
 

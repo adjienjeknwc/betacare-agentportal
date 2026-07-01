@@ -169,7 +169,7 @@ export default function CustomerDashboard() {
               </div>
 
               <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
-                <table className="w-full text-left border-collapse font-semibold">
+                <table className="hidden sm:table w-full text-left border-collapse font-semibold">
                   <thead>
                     <tr className="bg-slate-50 border-b font-black uppercase text-[9px] text-slate-400">
                       <th className="p-3">Remittance Date</th>
@@ -187,6 +187,22 @@ export default function CustomerDashboard() {
                     </tr>
                   </tbody>
                 </table>
+
+                {/* MOBILE CARDS VIEW */}
+                <div className="sm:hidden p-3.5 space-y-2 bg-white text-xs font-semibold text-left">
+                  <div className="flex justify-between items-center">
+                    <span className="font-mono font-bold text-slate-900">TXN-881290</span>
+                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[9px] font-black uppercase">Successful</span>
+                  </div>
+                  <div className="flex justify-between text-[11px] pt-1">
+                    <span className="text-slate-400 font-bold">Remittance Date</span>
+                    <span className="text-slate-700">{new Date(policy.policyCommencementDate).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px] pt-1 border-t border-slate-50">
+                    <span className="text-slate-400 font-bold">Amount Paid</span>
+                    <span className="text-[#0B1F5B] font-black">₹{policy.totalAnnualPremium.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
