@@ -4,27 +4,25 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
 import { 
   LayoutDashboard, UserCheck, FolderKanban, ShieldAlert, 
-  FileCheck, CalendarClock, Users, BarChart3,  
-  ChevronDown, ChevronRight, Shield, ShieldCheck, 
-  Settings, LogOut, BookOpen
+  FileCheck, ChevronDown, ChevronRight, Settings, LogOut, X
 } from 'lucide-react';
 
-export default function Sidebar() {
+export default function Sidebar({ onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // ==========================================================================
-  // 1. ALL REACT HOOKS PLACED SAFELY INSIDE THE FUNCTION BODY
-  // ==========================================================================
-  const { logout, activeRole, switchRole } = useAuth();
+  const { logout, activeRole } = useAuth();
   
-  // State variables for sub-menus and agent settings context
   const [isNewBusinessOpen, setIsNewBusinessOpen] = useState(true);
   const [isPoliciesOpen, setIsPoliciesOpen] = useState(true);
   const currentAgentName = localStorage.getItem('agentName') || "Rohan Malhotra";
 
-  // Active path checking logic helper
   const isActive = (path) => location.pathname === path;
+
+  const handleNav = (path) => {
+    navigate(path);
+    if (onClose) onClose();
+  };
 
   const getDynamicInitials = (nameString) => {
     const words = nameString.trim().split(/\s+/);
@@ -35,13 +33,24 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-[260px] h-screen bg-[#0B1F5B] text-white flex flex-col fixed left-0 top-0 z-50 border-r border-blue-950 font-sans select-none">
+    <div className="w-full h-full bg-[#0B1F5B] text-white flex flex-col font-sans select-none">
       {/* Brand Header */}
-      <div className="h-16 flex items-center gap-2.5 px-6 border-b border-blue-900/50 shrink-0">
-        <img src="/logo.png" alt="Betacare Life Logo" className="w-8 h-8 rounded-lg object-contain bg-white p-0.5 no-invert" />
-        <span className="font-black text-xs tracking-wider uppercase text-white">
-          Betacare Life
-        </span>
+      <div className="h-16 flex items-center justify-between px-6 border-b border-blue-900/50 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <img src="/logo.png" alt="Betacare Life Logo" className="w-8 h-8 rounded-lg object-contain bg-white p-0.5 no-invert" />
+          <span className="font-black text-xs tracking-wider uppercase text-white">
+            Betacare Life
+          </span>
+        </div>
+        {/* Mobile close button inside the sidebar itself */}
+        {onClose && (
+          <button 
+            onClick={onClose} 
+            className="lg:hidden p-1 rounded-lg hover:bg-blue-900/60 focus:outline-none transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Navigation Matrix Link Groupings */}
@@ -49,8 +58,8 @@ export default function Sidebar() {
         
         {/* Dashboard Link */}
         <button
-          onClick={() => navigate('/dashboard')}
-          className={`w-full h-9 flex items-center gap-3 px-3 rounded-xl transition-all ${
+          onClick={() => handleNav('/dashboard')}
+          className={`w-full h-9 flex items-center gap-3 px-3 rounded-xl transition-all text-left ${
             isActive('/dashboard') ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-blue-900/40 hover:text-white'
           }`}
         >
@@ -60,8 +69,8 @@ export default function Sidebar() {
 
         {/* Lead Management Link */}
         <button
-          onClick={() => navigate('/lead-management')}
-          className={`w-full h-9 flex items-center gap-3 px-3 rounded-xl transition-all ${
+          onClick={() => handleNav('/lead-management')}
+          className={`w-full h-9 flex items-center gap-3 px-3 rounded-xl transition-all text-left ${
             isActive('/lead-management') ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-blue-900/40 hover:text-white'
           }`}
         >
@@ -83,7 +92,7 @@ export default function Sidebar() {
             <div className="pl-3 space-y-0.5 border-l border-blue-900/40 ml-4 mt-0.5">
               {activeRole !== 'Underwriter' && (
                 <button
-                  onClick={() => navigate('/quotations')}
+                  onClick={() => handleNav('/quotations')}
                   className={`w-full h-8 flex items-center gap-2.5 px-3 rounded-lg text-left transition-all ${
                     isActive('/quotations') ? 'bg-blue-600/60 text-white font-extrabold' : 'hover:text-white'
                   }`}
@@ -94,7 +103,7 @@ export default function Sidebar() {
               )}
 
               <button
-                onClick={() => navigate('/policies/underwriting')}
+                onClick={() => handleNav('/policies/underwriting')}
                 className={`w-full h-8 flex items-center gap-2.5 px-3 rounded-lg text-left transition-all ${
                   isActive('/policies/underwriting') ? 'bg-blue-600/60 text-white font-extrabold' : 'hover:text-white'
                 }`}
@@ -119,7 +128,7 @@ export default function Sidebar() {
           {isPoliciesOpen && (
             <div className="pl-3 space-y-0.5 border-l border-blue-900/40 ml-4 mt-0.5">
               <button
-                onClick={() => navigate('/policies')}
+                onClick={() => handleNav('/policies')}
                 className={`w-full h-8 flex items-center gap-2.5 px-3 rounded-lg text-left transition-all ${
                   isActive('/policies') ? 'bg-blue-600/60 text-white font-extrabold' : 'hover:text-white'
                 }`}
@@ -133,7 +142,7 @@ export default function Sidebar() {
 
         {/* Global Standalone Link Rows */}
         <div className="pt-2 border-t border-blue-900/40 mt-2 space-y-1">
-          <button onClick={() => navigate('/settings')} className={`w-full h-9 flex items-center gap-3 px-3 rounded-xl transition-all ${
+          <button onClick={() => handleNav('/settings')} className={`w-full h-9 flex items-center gap-3 px-3 rounded-xl transition-all text-left ${
             isActive('/settings') ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-blue-900/40 hover:text-white'
           }`}>
             <Settings className="w-4 h-4" />
@@ -144,9 +153,7 @@ export default function Sidebar() {
 
       {/* User Profile Footer Section */}
       <div className="p-4 border-t border-blue-900/50 space-y-3 bg-blue-950/40 shrink-0">
-
-
-        <div className="flex items-center gap-3 px-2 py-1.5 rounded-xl hover:bg-white/5 transition-all select-none cursor-pointer" onClick={() => navigate('/settings')}>
+        <div className="flex items-center gap-3 px-2 py-1.5 rounded-xl hover:bg-white/5 transition-all select-none cursor-pointer" onClick={() => handleNav('/settings')}>
           <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-black tracking-tighter shrink-0 shadow-sm">
             {getDynamicInitials(currentAgentName)}
           </div>
@@ -162,7 +169,7 @@ export default function Sidebar() {
             type="button"
             onClick={() => {
               logout(); 
-              navigate('/login');
+              handleNav('/login');
             }}
             className="w-full flex items-center gap-2 text-slate-400 hover:text-white transition-colors cursor-pointer text-xs font-bold px-2 py-1.5 focus:outline-none rounded-lg hover:bg-white/5"
           >

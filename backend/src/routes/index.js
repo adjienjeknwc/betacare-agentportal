@@ -71,7 +71,7 @@ router.post('/auth/login', async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials. User not found.' });
     }
 
-    const isMatch = await bcrypt.compare(password, agent.password);
+    const isMatch = await bcrypt.compare(String(password), String(agent.password));
     if (!isMatch) {
       console.log(`❌ Login Failed: Password verification failed for agent: "${agent.username}"`);
       return res.status(401).json({ success: false, message: 'Invalid credentials. Incorrect password.' });
