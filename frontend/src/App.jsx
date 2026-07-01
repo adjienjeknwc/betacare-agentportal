@@ -10,7 +10,7 @@ import { PolicyProvider } from './context/PolicyContext';
 import LoginPage from './pages/Login';
 import AgentDashboard from './pages/AgentDashboard';
 import LeadManagement from './pages/LeadManagement';
-import RegisterFlow from "./pages/registerflow"; // Mapped to your clean lowercase filename
+import RegisterFlow from "./pages/RegisterFlow"; // Mapped to your clean lowercase filename
 import LeadFunnelAnalytics from './pages/LeadFunnelAnalytics';
 import DashboardLayout from './layouts/DashboardLayout';
 import PremiumCalculator from './pages/analytics/PremiumCalculator';
