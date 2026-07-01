@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   User, Mail, Phone, MapPin, ShieldCheck, Key, ToggleLeft, ToggleRight, 
-  Clock, CheckCircle, AlertTriangle, Monitor, Globe, MailCheck, Save, RefreshCw, Camera, X, Lock, LogOut
+  Clock, CheckCircle, AlertTriangle, Monitor, Globe, MailCheck, Save, RefreshCw, Camera, X, Lock, LogOut, ArrowLeft
 } from 'lucide-react';
 
 export default function Settings() {
@@ -146,13 +146,23 @@ export default function Settings() {
 
       {/* 1. TOP NAVBAR HEADER */}
       <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 lg:sticky lg:top-0 lg:z-10 relative z-0 select-none">
-        <div className="flex flex-col text-left">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">
-            Dashboard / User Profile & Settings
-          </span>
-          <h1 className="text-xl font-bold text-[#0B1F5B] tracking-tight leading-none mt-1">
-            Profile & Settings
-          </h1>
+        <div className="flex items-center gap-3">
+          <button 
+            type="button" 
+            onClick={() => navigate('/dashboard')}
+            className="p-1.5 border border-slate-200 rounded-xl bg-white text-slate-500 hover:bg-slate-50 transition-colors lg:hidden focus:outline-none cursor-pointer"
+            title="Return to Dashboard"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          <div className="flex flex-col text-left">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">
+              Dashboard / User Profile & Settings
+            </span>
+            <h1 className="text-xl font-bold text-[#0B1F5B] tracking-tight leading-none mt-1">
+              Profile & Settings
+            </h1>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -552,24 +562,7 @@ export default function Settings() {
 
       </main>
 
-      {/* 3. STICKY BOTTOM ACTION BAR */}
-      <footer className="fixed bottom-0 left-[260px] right-0 h-16 bg-white border-t border-slate-200 px-6 flex items-center justify-between shadow-lg z-20 select-none">
-        <button 
-          type="button"
-          onClick={() => navigate('/dashboard')}
-          className="border border-slate-200 hover:bg-slate-50 bg-white text-slate-600 font-bold text-xs h-9 px-4 rounded-xl transition-colors focus:outline-none"
-        >
-          Return to Dashboard
-        </button>
-        <button 
-          type="button" 
-          onClick={handleSaveAll}
-          className="bg-[#0B1E46] hover:bg-black text-white text-xs font-bold h-9 px-5 rounded-xl flex items-center gap-1.5 transition-all shadow-sm focus:outline-none"
-        >
-          <Save className="w-3.5 h-3.5" />
-          <span>Commit & Save Preferences</span>
-        </button>
-      </footer>
+
 
       {/* INTERACTIVE CHANGES-PASSWORD POPUP MODAL OVERLAY SHEET */}
       {showPasswordModal && (
