@@ -6,7 +6,7 @@ import {
   LayoutDashboard, UserCheck, FolderKanban, ShieldAlert, 
   FileCheck, CalendarClock, Users, BarChart3,  
   ChevronDown, ChevronRight, Shield, ShieldCheck, 
-  Settings, LogOut
+  Settings, LogOut, BookOpen
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -133,6 +133,13 @@ export default function Sidebar() {
 
         {/* Global Standalone Link Rows */}
         <div className="pt-2 border-t border-blue-900/40 mt-2 space-y-1">
+          <button onClick={() => navigate('/about-project')} className={`w-full h-9 flex items-center gap-3 px-3 rounded-xl transition-all ${
+            isActive('/about-project') ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-blue-900/40 hover:text-white'
+          }`}>
+            <BookOpen className="w-4 h-4" />
+            <span>About Project</span>
+          </button>
+          
           <button onClick={() => navigate('/settings')} className={`w-full h-9 flex items-center gap-3 px-3 rounded-xl transition-all ${
             isActive('/settings') ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-blue-900/40 hover:text-white'
           }`}>
