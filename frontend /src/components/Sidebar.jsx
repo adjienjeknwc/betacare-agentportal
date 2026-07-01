@@ -1,29 +1,46 @@
 // src/components/Sidebar.jsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; 
 import { 
   LayoutDashboard, UserCheck, FolderKanban, ShieldAlert, 
-  FileCheck, CalendarClock, Users, BarChart3, Settings, 
-  ChevronDown, ChevronRight, Shield
+  FileCheck, CalendarClock, Users, BarChart3,  
+  ChevronDown, ChevronRight, Shield, ShieldCheck, 
+  Settings, LogOut
 } from 'lucide-react';
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Manage open/close states for nested sub-menus
+  // ==========================================================================
+  // 1. ALL REACT HOOKS PLACED SAFELY INSIDE THE FUNCTION BODY
+  // ==========================================================================
+  const { logout, activeRole, switchRole } = useAuth();
+  
+  // State variables for sub-menus and agent settings context
   const [isNewBusinessOpen, setIsNewBusinessOpen] = useState(true);
   const [isPoliciesOpen, setIsPoliciesOpen] = useState(true);
+  const currentAgentName = localStorage.getItem('agentName') || "Rohan Malhotra";
 
+  // Active path checking logic helper
   const isActive = (path) => location.pathname === path;
+
+  const getDynamicInitials = (nameString) => {
+    const words = nameString.trim().split(/\s+/);
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return words[0][0] ? words[0].slice(0, 2).toUpperCase() : "AA";
+  };
 
   return (
     <div className="w-[260px] h-screen bg-[#0B1F5B] text-white flex flex-col fixed left-0 top-0 z-50 border-r border-blue-950 font-sans select-none">
       {/* Brand Header */}
       <div className="h-16 flex items-center gap-2.5 px-6 border-b border-blue-900/50 shrink-0">
-        <Shield className="w-5 h-5 text-blue-400 fill-current" />
+        <img src="/logo.png" alt="Betacare Life Logo" className="w-8 h-8 rounded-lg object-contain bg-white p-0.5 no-invert" />
         <span className="font-black text-xs tracking-wider uppercase text-white">
-          ABCD Life Insurance
+          Betacare Life
         </span>
       </div>
 
@@ -64,17 +81,17 @@ export default function Sidebar() {
 
           {isNewBusinessOpen && (
             <div className="pl-3 space-y-0.5 border-l border-blue-900/40 ml-4 mt-0.5">
-              <button
-                onClick={() => navigate('/quotations')}
-                className={`w-full h-8 flex items-center gap-2.5 px-3 rounded-lg text-left transition-all ${
-                  isActive('/quotations') ? 'bg-blue-600/60 text-white font-extrabold' : 'hover:text-white'
-                }`}
-              >
-                <FolderKanban className="w-3.5 h-3.5" />
-                <span>Quotations</span>
-              </button>
-
-              
+              {activeRole !== 'Underwriter' && (
+                <button
+                  onClick={() => navigate('/quotations')}
+                  className={`w-full h-8 flex items-center gap-2.5 px-3 rounded-lg text-left transition-all ${
+                    isActive('/quotations') ? 'bg-blue-600/60 text-white font-extrabold' : 'hover:text-white'
+                  }`}
+                >
+                  <FolderKanban className="w-3.5 h-3.5" />
+                  <span>Quotations</span>
+                </button>
+              )}
 
               <button
                 onClick={() => navigate('/policies/underwriting')}
@@ -110,18 +127,12 @@ export default function Sidebar() {
                 <FileCheck className="w-3.5 h-3.5" />
                 <span>Active Policies</span>
               </button>
-
-              
             </div>
           )}
         </div>
 
         {/* Global Standalone Link Rows */}
         <div className="pt-2 border-t border-blue-900/40 mt-2 space-y-1">
-          
-
-          
-
           <button onClick={() => navigate('/settings')} className={`w-full h-9 flex items-center gap-3 px-3 rounded-xl transition-all ${
             isActive('/settings') ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-blue-900/40 hover:text-white'
           }`}>
@@ -132,13 +143,32 @@ export default function Sidebar() {
       </nav>
 
       {/* User Profile Footer Section */}
-      <div className="p-4 border-t border-blue-900/50 bg-blue-950/40 flex items-center gap-3 shrink-0 text-left">
-        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-black text-xs text-white shrink-0 border border-blue-400/30">
-          RM
+      <div className="p-4 border-t border-blue-900/50 space-y-3 bg-blue-950/40 shrink-0">
+
+
+        <div className="flex items-center gap-3 px-2 py-1.5 rounded-xl hover:bg-white/5 transition-all select-none cursor-pointer" onClick={() => navigate('/settings')}>
+          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-black tracking-tighter shrink-0 shadow-sm">
+            {getDynamicInitials(currentAgentName)}
+          </div>
+          <div className="text-left min-w-0 flex-1">
+            <p className="text-xs font-bold text-white leading-none truncate">{currentAgentName.split(' ')[0]}</p>
+            <span className="text-[10px] text-slate-400 font-medium block mt-0.5">View Profile</span>
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <span className="block text-xs font-black text-white truncate">Rohan Mishra</span>
-          <span className="block text-[10px] font-bold text-blue-400 truncate">Premier Advisor</span>
+        
+        {/* LOGOUT INTERACTION BUTTON */}
+        <div className="pt-2 border-t border-blue-900/30">
+          <button
+            type="button"
+            onClick={() => {
+              logout(); 
+              navigate('/login');
+            }}
+            className="w-full flex items-center gap-2 text-slate-400 hover:text-white transition-colors cursor-pointer text-xs font-bold px-2 py-1.5 focus:outline-none rounded-lg hover:bg-white/5"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            <span>Exit Session (Logout)</span>
+          </button>
         </div>
       </div>
     </div>

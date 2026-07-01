@@ -1,17 +1,19 @@
 // src/components/registration/LeadPersonalDetails.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLeads } from '../../context/LeadContext'; // Context binding
 import { User, Calendar, ArrowRight, ArrowLeft, Bell } from 'lucide-react';
 
 export default function LeadPersonalDetails() {
   const navigate = useNavigate();
+  const { wizardLeadForm, updateWizardForm } = useLeads();
 
-  // 1. STATE MANAGEMENT TO MATCH SCREENSHOT FORM INPUTS
+  // 1. STATE MANAGEMENT CONTROL WITH BACKEND WRAPPER SYNC
   const [formData, setFormData] = useState({
     firstName: 'sqwd',
     lastName: 'xscw',
-    dob: '2026-06-19', // Standardized YYYY-MM-DD input field mapping
-    gender: 'Male Group',
+    dob: wizardLeadForm?.dob || '2026-06-19', // Standardized YYYY-MM-DD input field mapping
+    gender: wizardLeadForm?.gender || 'Male Group',
     maritalStatus: 'Single / Unmarried'
   });
 
@@ -29,6 +31,16 @@ export default function LeadPersonalDetails() {
   const handleSaveAndContinue = (e) => {
     e.preventDefault();
     
+    // Construct a unified name mapping variable string for index processing tables
+    const parsedFullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
+
+    // Commit individual section parameters safely to the shared ledger buffer
+    updateWizardForm({
+      fullName: parsedFullName,
+      dob: formData.dob,
+      gender: formData.gender === 'Male Group' ? 'Male' : formData.gender === 'Female Group' ? 'Female' : 'Other'
+    });
+
     // Moves sequentially to step 2: Contact Info Form Workspace
     navigate('/register/contact-info', { state: { personalData: formData } });
   };

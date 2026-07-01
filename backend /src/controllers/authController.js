@@ -1,29 +1,30 @@
-const Agent = require('../models/Agent');
+// backend/controllers/authController.js
+const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const asyncWrapper = require('../utils/asyncWrapper');
-const { formatResponse } = require('../middleware/responseHandler');
 
-exports.login = asyncWrapper(async (req, res) => {
-  const { email, password } = req.body;
+exports.registerAgent = async (req, res) => {
+  try {
+    const { username, password, fullName } = req.body;
+    const userExists = await User.findOne({ username });
+    if (userExists) return res.status(400).json({ success: false, message: 'Agent identity username already claimed.' });
 
-  const agent = await Agent.findOne({ email });
-  if (!agent || !(await agent.matchPassword(password))) {
-    return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    const user = await User.create({ username, password, fullName });
+    return res.status(201).json({ success: true, message: 'Agent registration completed successfully.' });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
   }
+};
 
-  // Generate standard Login JWT
-  const token = jwt.sign(
-    { id: agent._id, role: agent.role }, 
-    process.env.JWT_SECRET, 
-    { expiresIn: process.env.JWT_EXPIRES_IN || '1d' }
-  );
-
-  return formatResponse(res, 200, 'Login successful', {
-    token,
-    agent: {
-      id: agent._id,
-      email: agent.email,
-      status: agent.registrationStatus
+exports.loginAgent = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+    if (!user || !(await user.verifyPassword(password))) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials profile mismatch.' });
     }
-  });
-});
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'PORTAL_SECRET_KEY', { expiresIn: '7d' });
+    return res.status(200).json({ success: true, token, agent: { fullName: user.fullName, brokerId: user.brokerId } });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};

@@ -1,474 +1,383 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+// src/pages/registerflow.jsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useLeads } from '../context/LeadContext';
 import { 
-  ShieldCheck, CheckCircle2, User, Briefcase, FileText, FileBadge, 
-  UploadCloud, AlertCircle, ChevronRight, ChevronLeft, Camera, 
-  Lock, Eye, EyeOff, ShieldAlert
+  User, Shield, Briefcase, FileText, Landmark, Key, CheckSquare, 
+  ArrowLeft, ArrowRight, Upload, Eye, ClipboardCheck, ShieldCheck, 
+  AlertTriangle 
 } from 'lucide-react';
 
-// ==========================================
-// 1. GLOBAL STATE CONTEXT
-// ==========================================
-const RegistrationContext = createContext();
-
 export default function RegisterFlow() {
-  const [formData, setFormData] = useState({
-    personal: { firstName: 'John', lastName: 'Doe', mobile: '+91 98765 43210', email: 'john.doe@email.com', dob: '', gender: '', address: '', city: 'Mumbai', state: '', pin: '400001' },
-    professional: { role: 'Sales Agent', employeeId: '', designation: '', branch: '', experience: '', license: '', specialization: '', manager: '' },
-    kyc: { pan: null, aadhaar: null, license: null, addressProof: null, photo: null },
-    credentials: { username: '', password: '', confirmPassword: '', securityQuestion: '', securityAnswer: '', twoFactor: true },
-    declaration: false
+  const navigate = useNavigate();
+  const { setMasterLeadsData, setWizardLeadForm } = useLeads();
+  
+  const [currentStep, setCurrentStep] = useState(1);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+
+  // Form payload maps character-for-character to your production Mongoose schema rules
+  const [registrationForm, setRegistrationForm] = useState({
+    firstName: '', middleName: '', lastName: '', dob: '', gender: 'Male',
+    maritalStatus: 'Single', nationality: 'Indian', profilePhoto: null,
+    mobileNumber: '', alternateMobileNumber: '', emailAddress: '', alternateEmail: '',
+    currentAddress: '', city: '', state: '', pincode: '', country: 'India',
+    agentType: 'Individual Agent', agentCode: 'AGT-' + Math.floor(100000 + Math.random() * 900000),
+    branchLocation: '', reportingManager: '', joiningDate: '',
+    totalExperience: '', previousCompany: '', previousAgentCode: '', yearsOfExperience: 0,
+    irdaiLicenseNumber: '', licenseIssueDate: '', licenseExpiryDate: '', licenseCertificate: null,
+    panNumber: '', aadhaarNumberPlaceholder: '[Aadhaar Redacted]', gstNumber: '',
+    accountHolderName: '', bankName: '', accountNumber: '', confirmAccountNumber: '',
+    ifscCode: '', branchName: '', preferredPaymentMethod: 'Bank Transfer', cancelledCheque: null,
+    username: '', password: '', confirmPassword: '', securityQuestion: "Mother's Maiden Name", securityAnswer: '',
+    amlDeclaration: false, kycConsent: false, termsAcceptance: false, codeOfConduct: false
   });
 
-  const updateFormData = (section, data) => {
-    setFormData(prev => ({ ...prev, [section]: { ...prev[section], ...data } }));
+  const triggerToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 4000);
+  };
+
+  const isStepValid = () => {
+    if (currentStep === 1) {
+      if (!registrationForm.firstName.trim()) {
+        triggerToast("First Name is required on Step 1.");
+        return false;
+      }
+      if (!registrationForm.lastName.trim()) {
+        triggerToast("Last Name is required on Step 1.");
+        return false;
+      }
+      if (!registrationForm.emailAddress.trim()) {
+        triggerToast("Email Address is required on Step 1.");
+        return false;
+      }
+      if (!registrationForm.mobileNumber.trim()) {
+        triggerToast("Mobile Number is required on Step 1.");
+        return false;
+      }
+    }
+    if (currentStep === 6) {
+      if (!registrationForm.username.trim()) {
+        triggerToast("Username is required on Step 6.");
+        return false;
+      }
+      if (!registrationForm.password) {
+        triggerToast("Password is required on Step 6.");
+        return false;
+      }
+      if (registrationForm.password !== registrationForm.confirmPassword) {
+        triggerToast("Passwords do not match.");
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setRegistrationForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleFileUploadSimulate = (fieldKey) => {
+    setRegistrationForm(prev => ({ ...prev, [fieldKey]: `STAGED_${fieldKey.toUpperCase()}_FILE.pdf` }));
+    triggerToast(`Document linked successfully to file system metadata repository.`);
+  };
+
+  // ==========================================================================
+  // DB LIVE CONNECTION FORK DISPATCHER
+  // Transmits the 7-step data payload cleanly into MongoDB Atlas
+  // ==========================================================================
+  const handleFinalSubmitRegistration = async (e) => {
+    e.preventDefault();
+
+    if (registrationForm.password !== registrationForm.confirmPassword) {
+      triggerToast("Credential Error: Passwords do not match.");
+      return;
+    }
+
+    if (!registrationForm.amlDeclaration || !registrationForm.kycConsent || !registrationForm.termsAcceptance) {
+      triggerToast("Validation Error: Please accept mandatory declarations and compliance fields.");
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registrationForm)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Registration processing pipeline failed.");
+      }
+
+      // Flush local memory contexts clear so the active session instantiates completely clean
+      if (typeof setMasterLeadsData === 'function') setMasterLeadsData([]);
+      if (typeof setWizardLeadForm === 'function') setWizardLeadForm({});
+
+      // Sync auto-generated database registration parameters back into memory tracking state
+      setRegistrationForm(prev => ({ ...prev, agentCode: data.agentCode }));
+      setShowSuccessOverlay(true);
+
+    } catch (error) {
+      console.error("❌ Registration transmission failed:", error);
+      triggerToast(`Pipeline Failure: ${error.message}`);
+    }
   };
 
   return (
-    <RegistrationContext.Provider value={{ formData, updateFormData, setFormData }}>
-      <RegistrationLayout />
-    </RegistrationContext.Provider>
-  );
-}
-
-// ==========================================
-// 2. MASTER LAYOUT & SIDEBAR
-// ==========================================
-function RegistrationLayout() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  
-  const steps = [
-    { path: 'personal-details', name: 'Personal', num: 1 },
-    { path: 'professional-info', name: 'Professional', num: 2 },
-    { path: 'kyc-verification', name: 'KYC', num: 3 },
-    { path: 'credentials', name: 'Credentials', num: 4 },
-    { path: 'review-submit', name: 'Review', num: 5 }
-  ];
-
-  const currentStepIndex = steps.findIndex(s => location.pathname.includes(s.path));
-  const currentStep = currentStepIndex !== -1 ? currentStepIndex + 1 : 1;
-
-  return (
-    <div className="min-h-screen bg-[#F5F7FB] flex font-sans text-gray-900">
+    <div className="flex-1 flex flex-col min-h-screen bg-[#F5F7FB] text-left font-sans antialiased pb-16 w-full relative">
       
-      {/* Fixed Left Sidebar[cite: 12] */}
-      <aside className="w-64 bg-white border-r border-gray-100 flex-col hidden md:flex shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] relative z-20">
-        <div className="p-6 flex flex-col items-center border-b border-gray-100">
-          <div className="w-16 h-20 bg-[#0F478D] text-white flex items-center justify-center rounded-b-[2rem] rounded-t-lg shadow-inner mb-4">
-            <span className="text-4xl font-black">A</span>
-          </div>
-          <h1 className="font-bold text-gray-900 leading-tight">Agent Registration</h1>
-          <p className="text-xs text-gray-500 font-medium">Step {currentStep} of 5</p>
+      {toastMessage && (
+        <div className="fixed top-6 right-6 bg-[#0B1F5B] text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl z-50 border border-blue-900 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>{toastMessage}</span>
         </div>
+      )}
 
-        <nav className="flex-1 p-6">
-          <ul className="space-y-6 relative before:absolute before:inset-0 before:ml-10 before:-translate-x-px md:before:mx-auto md:before:translate-x-[0px] before:h-full before:w-[2px] before:bg-gray-100">
-            {steps.map((s, i) => {
-              const isPast = currentStep > s.num;
-              const isActive = currentStep === s.num;
-              return (
-                <li key={s.num} className="flex items-center gap-4 relative z-10">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 ${
-                    isActive ? 'bg-[#0F478D] border-[#0F478D] text-white shadow-md' : 
-                    isPast ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-gray-200 text-gray-400'
-                  }`}>
-                    {isPast ? <CheckCircle2 className="w-4 h-4" /> : s.num}
-                  </div>
-                  <span className={`text-sm font-bold ${isActive ? 'text-[#0F478D]' : isPast ? 'text-gray-900' : 'text-gray-400'}`}>
-                    {s.name}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
-        <div className="p-6 border-t border-gray-100">
-          <button onClick={() => navigate('/login')} className="text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">
-            ← Back to Login
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden relative">
-        <div className="flex-1 overflow-y-auto p-6 md:p-10 lg:p-12">
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<Navigate to="personal-details" replace />} />
-              <Route path="personal-details" element={<Step1Personal />} />
-              <Route path="professional-info" element={<Step2Professional />} />
-              <Route path="kyc-verification" element={<Step3KYC />} />
-              <Route path="credentials" element={<Step4Credentials />} />
-              <Route path="review-submit" element={<Step5Review />} />
-            </Routes>
-          </AnimatePresence>
-        </div>
-      </main>
-    </div>
-  );
-}
-
-// ==========================================
-// 3. PAGE COMPONENTS
-// ==========================================
-
-/* --- STEP 1: PERSONAL DETAILS[cite: 12] --- */
-function Step1Personal() {
-  const navigate = useNavigate();
-  const { formData, updateFormData } = useContext(RegistrationContext);
-
-  return (
-    <PageWrapper>
-      <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-10">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Personal Details</h2>
-          <p className="text-sm text-gray-500 mt-1">Please provide your legal name as it appears on your government IDs.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Input label="First Name" value={formData.personal.firstName} onChange={e => updateFormData('personal', {firstName: e.target.value})} />
-          <Input label="Last Name" value={formData.personal.lastName} onChange={e => updateFormData('personal', {lastName: e.target.value})} />
-          <Input label="Mobile Number" value={formData.personal.mobile} onChange={e => updateFormData('personal', {mobile: e.target.value})} />
-          <Input label="Email Address" value={formData.personal.email} onChange={e => updateFormData('personal', {email: e.target.value})} type="email" />
-          <Input label="Date of Birth" value={formData.personal.dob} onChange={e => updateFormData('personal', {dob: e.target.value})} type="date" placeholder="mm/dd/yyyy" />
-          
-          <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Gender</label>
-            <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:bg-white focus:border-[#0F478D] focus:ring-2 focus:ring-blue-50">
-              <option>Select Gender</option><option>Male</option><option>Female</option>
-            </select>
-          </div>
-
-          <div className="md:col-span-2">
-            <Input label="Permanent Address" value={formData.personal.address} onChange={e => updateFormData('personal', {address: e.target.value})} placeholder="Street, Building, Flat No." />
-          </div>
-          <Input label="City" value={formData.personal.city} onChange={e => updateFormData('personal', {city: e.target.value})} />
-          <Input label="PIN Code" value={formData.personal.pin} onChange={e => updateFormData('personal', {pin: e.target.value})} />
-        </div>
-
-        <div className="flex justify-between items-center pt-6 border-t border-gray-100">
-          <p className="text-xs text-gray-400 font-medium">All your data is encrypted and handled<br/>according to our Privacy Policy.</p>
-          <button onClick={() => navigate('../professional-info')} className="px-6 py-3 bg-[#0F478D] text-white font-bold rounded-xl hover:bg-[#0B1E46] transition-all flex items-center shadow-md">
-            Next Step <ChevronRight className="w-4 h-4 ml-1" />
-          </button>
-        </div>
-      </div>
-    </PageWrapper>
-  );
-}
-
-/* --- STEP 2: PROFESSIONAL INFO[cite: 13] --- */
-function Step2Professional() {
-  const navigate = useNavigate();
-  const { formData, updateFormData } = useContext(RegistrationContext);
-
-  const roles = [
-    { title: 'Sales Agent', desc: 'Focus on individual life & health.' },
-    { title: 'Senior Advisor', desc: 'Wealth management specialist.' },
-    { title: 'Underwriter', desc: 'Risk assessment and approval.' }
-  ];
-
-  return (
-    <PageWrapper>
-      <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-10">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Professional Information</h2>
-          <p className="text-gray-500 mb-8">Tell us about your background and current role within the insurance ecosystem.</p>
-          
-          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">Select Your Core Role</label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            {roles.map(r => (
-              <div key={r.title} onClick={() => updateFormData('professional', {role: r.title})} className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${formData.professional.role === r.title ? 'border-[#0F478D] bg-blue-50/50' : 'border-gray-100 hover:border-gray-300'}`}>
-                <h3 className="font-bold text-gray-900 text-sm mb-1">{r.title}</h3>
-                <p className="text-xs text-gray-500 font-medium">{r.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <Input label="Employee/Agent ID" placeholder="e.g. AG-88291" />
-            <Input label="Designation" placeholder="e.g. Portfolio Manager" />
-            <Input label="Branch Location" placeholder="Select Branch" />
-            <Input label="Years of Experience" placeholder="Years" />
-            <Input label="License Number" placeholder="INS-XXXX-XXXX" />
-            <Input label="Reporting Manager" placeholder="Search for manager name..." />
-          </div>
-
-          <div className="flex justify-between items-center pt-6 border-t border-gray-100">
-            <button onClick={() => navigate('../personal-details')} className="px-6 py-3 border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all flex items-center">
-              <ChevronLeft className="w-4 h-4 mr-1" /> Back
-            </button>
-            <button onClick={() => navigate('../kyc-verification')} className="px-6 py-3 bg-[#0F478D] text-white font-bold rounded-xl hover:bg-[#0B1E46] transition-all flex items-center shadow-md">
-              Continue to Documents <ChevronRight className="w-4 h-4 ml-1" />
+      {showSuccessOverlay && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-white border border-slate-200 w-full max-w-md rounded-3xl p-8 shadow-2xl text-center space-y-6">
+            <div className="w-20 h-20 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto text-emerald-600">
+              <ShieldCheck className="w-10 h-10" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Welcome to the Team!</h2>
+              <p className="text-sm font-black text-[#0B1F5B] uppercase tracking-wider">Authorized Broker Record Deployed</p>
+              <p className="text-xs text-slate-400 font-semibold leading-relaxed pt-2">
+                Your credentials are live inside the network. Your tracking license identifier code is <span className="font-mono text-slate-900 font-extrabold bg-slate-50 px-1.5 py-0.5 border rounded">{registrationForm.agentCode}</span>.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setShowSuccessOverlay(false); navigate('/login'); }}
+              className="w-full h-11 bg-[#0B1F5B] hover:bg-black text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer"
+            >
+              Proceed to Login Terminal
             </button>
           </div>
         </div>
+      )}
 
-        {/* AI Profile Validation Sidebar[cite: 13] */}
-        <div className="bg-[#0B1E46] rounded-2xl shadow-lg p-6 text-white h-fit relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10"><ShieldCheck className="w-24 h-24" /></div>
-          <h3 className="text-xs font-bold text-blue-200 tracking-widest uppercase mb-6 relative z-10">AI PROFILE VALIDATION</h3>
-          
-          <div className="bg-white/10 rounded-xl p-5 mb-6 relative z-10 border border-white/20">
-            <p className="text-sm font-medium text-blue-100 mb-1">Profile completeness score</p>
-            <div className="flex items-end gap-2 mb-3">
-              <span className="text-4xl font-black">45%</span>
-            </div>
-            <div className="w-full bg-blue-900 rounded-full h-1.5"><div className="bg-blue-400 h-1.5 rounded-full w-[45%]"></div></div>
-          </div>
-
-          <div className="relative z-10">
-            <p className="text-sm font-bold mb-4">Next steps to 100%</p>
-            <ul className="space-y-3 text-sm text-blue-100 font-medium">
-              <li className="flex items-center gap-2 text-green-400"><CheckCircle2 className="w-4 h-4" /> Personal Identity Verified</li>
-              <li className="flex items-center gap-2"><div className="w-4 h-4 border border-blue-400 rounded-full"></div> Submit License Credentials</li>
-              <li className="flex items-center gap-2"><div className="w-4 h-4 border border-blue-400 rounded-full"></div> Upload Certificate of Authority</li>
-            </ul>
-          </div>
+      <header className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-40 shadow-3xs w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+        <div>
+          <h1 className="font-black text-[#0B1F5B] tracking-tight text-xl">Agent Onboarding Workspace</h1>
+          <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider mt-1">Configure compliance metadata logs to deploy a new profile</p>
         </div>
-      </div>
-    </PageWrapper>
-  );
-}
+        <div className="flex items-center gap-1 bg-slate-100 p-1 border rounded-xl text-[10px] font-black uppercase text-slate-400 shrink-0">
+          {[1, 2, 3, 4, 5, 6, 7].map(step => (
+            <span key={step} className={`px-2.5 py-1 rounded-lg transition-all ${currentStep === step ? 'bg-[#0B1F5B] text-white shadow-3xs' : ''}`}>Step {step}</span>
+          ))}
+        </div>
+      </header>
 
-/* --- STEP 3: KYC VERIFICATION[cite: 11] --- */
-function Step3KYC() {
-  const navigate = useNavigate();
+      <main className="max-w-[1250px] w-full mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-5 md:p-6 shadow-sm">
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
 
-  return (
-    <PageWrapper>
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">KYC Verification <span className="bg-blue-100 text-[#0F478D] text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Secure Onboarding</span></h2>
-        <p className="text-gray-500 mb-8 max-w-2xl text-sm leading-relaxed">To comply with IRDAI regulations, please upload high-resolution copies of your identification documents. Our AI assistant will verify them in real-time.</p>
-        
-        <div className="space-y-4 mb-8">
-          
-          {/* Upload Card 1 */}
-          <div className="p-4 border border-gray-200 rounded-xl flex flex-col md:flex-row md:items-center justify-between bg-gray-50/50 gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-[#0F478D]"><FileText className="w-5 h-5" /></div>
-              <div>
-                <h4 className="font-bold text-gray-900 text-sm">PAN Card</h4>
-                <p className="text-xs text-gray-500 font-medium">Identity verification</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 w-full md:w-auto">
-              <div className="text-right hidden sm:block">
-                <p className="text-xs font-bold text-gray-900">pan_card_copy.pdf</p>
-                <p className="text-[10px] text-green-600 font-bold">100% Uploaded</p>
-              </div>
-              <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 shadow-sm w-full md:w-auto">Re-upload</button>
-            </div>
-          </div>
-
-          {/* AI Alert Card[cite: 11] */}
-          <div className="p-5 border border-red-200 bg-red-50 rounded-xl shadow-sm">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="text-red-600 w-5 h-5 mt-0.5 shrink-0" />
-              <div>
-                <h4 className="font-bold text-red-900 text-sm mb-1">AI Verification Alert</h4>
-                <p className="text-xs text-red-700 font-medium leading-relaxed">Aadhaar name mismatch detected. The name on your uploaded Aadhaar card does not exactly match your registration name "Rahul K. Sharma". Please ensure names are identical or upload a supporting Gazette document.</p>
-                <div className="mt-4 flex gap-3">
-                  <button className="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 shadow-sm">Re-upload</button>
-                  <button className="px-4 py-2 bg-white border border-red-200 text-red-700 rounded-lg text-xs font-bold hover:bg-red-50">Help</button>
+            {/* STEP 1: PERSONAL INFORMATION */}
+            {currentStep === 1 && (
+              <div className="space-y-4">
+                <div className="border-b pb-2 flex items-center gap-2 text-[#0B1F5B]">
+                  <User className="w-4 h-4" />
+                  <h3 className="text-xs font-black uppercase tracking-wider">Step 1 — Personal Information</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <input type="text" name="firstName" value={registrationForm.firstName} onChange={handleInputChange} placeholder="First Name *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none focus:bg-white" />
+                  <input type="text" name="middleName" value={registrationForm.middleName} onChange={handleInputChange} placeholder="Middle Name" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  <input type="text" name="lastName" value={registrationForm.lastName} onChange={handleInputChange} placeholder="Last Name *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <input type="date" name="dob" value={registrationForm.dob} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  <select name="gender" value={registrationForm.gender} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-bold text-slate-900 outline-none"><option>Male</option><option>Female</option><option>Other</option></select>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <input type="tel" name="mobileNumber" value={registrationForm.mobileNumber} onChange={handleInputChange} placeholder="Mobile Number *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  <input type="email" name="emailAddress" value={registrationForm.emailAddress} onChange={handleInputChange} placeholder="Email Address *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                </div>
+                <input type="text" name="currentAddress" value={registrationForm.currentAddress} onChange={handleInputChange} placeholder="Current Full Address *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                <div className="grid grid-cols-3 gap-4">
+                  <input type="text" name="city" value={registrationForm.city} onChange={handleInputChange} placeholder="City *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  <input type="text" name="state" value={registrationForm.state} onChange={handleInputChange} placeholder="State *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  <input type="text" name="pincode" value={registrationForm.pincode} onChange={handleInputChange} placeholder="Pincode *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
                 </div>
               </div>
-            </div>
-          </div>
-          
-          {/* File Drop Area */}
-          <div className="p-6 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50/50 hover:bg-gray-50 transition-colors cursor-pointer group">
-            <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-[#0F478D] mb-3 group-hover:scale-110 transition-transform"><UploadCloud className="w-6 h-6" /></div>
-            <p className="text-sm font-bold text-gray-900">Drag and drop or Browse</p>
-            <p className="text-xs text-gray-500 font-medium mt-1">PDF, JPG, PNG (Max 5MB)</p>
-          </div>
-
-        </div>
-
-        <div className="flex justify-between items-center pt-6 border-t border-gray-100">
-          <button onClick={() => navigate('../professional-info')} className="px-6 py-3 border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all flex items-center">
-            <ChevronLeft className="w-4 h-4 mr-1" /> Back
-          </button>
-          <div className="flex gap-3">
-             <button className="px-6 py-3 border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all hidden sm:block">Save Draft</button>
-             <button onClick={() => navigate('../credentials')} className="px-6 py-3 bg-[#0F478D] text-white font-bold rounded-xl hover:bg-[#0B1E46] transition-all flex items-center shadow-md">
-                Continue to Review <ChevronRight className="w-4 h-4 ml-1" />
-             </button>
-          </div>
-        </div>
-      </div>
-    </PageWrapper>
-  );
-}
-
-/* --- STEP 4: CREDENTIALS SETUP (Custom implementation of flow) --- */
-function Step4Credentials() {
-  const navigate = useNavigate();
-  return (
-    <PageWrapper>
-      <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-10">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Credentials</h2>
-          <p className="text-gray-500 text-sm">Set up your secure login details for the Agent Portal.</p>
-        </div>
-
-        <div className="space-y-6 mb-8">
-          <Input label="Username / Portal ID" placeholder="Create a unique username" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input label="Password" type="password" placeholder="••••••••" />
-            <Input label="Confirm Password" type="password" placeholder="••••••••" />
-          </div>
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-             <label className="flex items-center gap-3 cursor-pointer">
-               <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#0F478D] focus:ring-[#0F478D]" defaultChecked />
-               <div>
-                 <span className="text-sm font-bold text-gray-900 block">Enable Two-Factor Authentication (2FA)</span>
-                 <span className="text-xs font-medium text-gray-500">Adds an extra layer of security requiring an OTP during login.</span>
-               </div>
-             </label>
-          </div>
-        </div>
-
-        <div className="flex justify-between items-center pt-6 border-t border-gray-100">
-          <button onClick={() => navigate('../kyc-verification')} className="px-6 py-3 border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all flex items-center">
-            <ChevronLeft className="w-4 h-4 mr-1" /> Back
-          </button>
-          <button onClick={() => navigate('../review-submit')} className="px-6 py-3 bg-[#0F478D] text-white font-bold rounded-xl hover:bg-[#0B1E46] transition-all flex items-center shadow-md">
-            Continue to Review <ChevronRight className="w-4 h-4 ml-1" />
-          </button>
-        </div>
-      </div>
-    </PageWrapper>
-  );
-}
-
-/* --- STEP 5: REVIEW & SUBMIT[cite: 10] --- */
-function Step5Review() {
-  const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    // Simulate API Call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSuccess(true);
-      // Auto redirect to login after success
-      setTimeout(() => navigate('/login'), 2000);
-    }, 1500);
-  };
-
-  if (success) {
-    return (
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-lg mx-auto bg-white rounded-2xl shadow-xl border border-gray-100 p-10 text-center mt-20">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600"><CheckCircle2 className="w-10 h-10" /></div>
-        <h2 className="text-2xl font-black text-gray-900 mb-2">Registration Submitted!</h2>
-        <p className="text-gray-500 font-medium mb-6">Your application is under review. You will be redirected to the login page momentarily.</p>
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-[#0F478D] rounded-full animate-spin mx-auto"></div>
-      </motion.div>
-    );
-  }
-
-  return (
-    <PageWrapper>
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Review & Submit</h2>
-        <p className="text-gray-500 mb-8 text-sm font-medium">Please confirm all details are correct before submitting your application for verification.</p>
-        
-        <div className="space-y-6 mb-8">
-          
-          {/* Card 1[cite: 10] */}
-          <div className="border border-gray-200 rounded-xl p-6 relative">
-            <button onClick={() => navigate('../personal-details')} className="absolute top-6 right-6 text-xs font-bold text-[#0F478D] hover:underline">Edit</button>
-            <h3 className="font-bold text-gray-900 text-sm border-b border-gray-100 pb-3 mb-4">Personal Information</h3>
-            <div className="grid grid-cols-2 gap-y-4 gap-x-6">
-              <div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Full Name</span><span className="text-sm font-bold text-gray-900">Alexander J. Sterling</span></div>
-              <div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Email Address</span><span className="text-sm font-bold text-gray-900">a.sterling@financial.com</span></div>
-              <div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Phone Number</span><span className="text-sm font-bold text-gray-900">+1 (555) 012-3456</span></div>
-              <div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Residential Address</span><span className="text-sm font-bold text-gray-900">4522 Oakwood Dr, Suite 300, Dallas, TX</span></div>
-            </div>
-          </div>
-
-          {/* Card 2[cite: 10] */}
-          <div className="border border-gray-200 rounded-xl p-6 relative">
-            <button onClick={() => navigate('../professional-info')} className="absolute top-6 right-6 text-xs font-bold text-[#0F478D] hover:underline">Edit</button>
-            <h3 className="font-bold text-gray-900 text-sm border-b border-gray-100 pb-3 mb-4 flex items-center justify-between">
-              Professional Details
-              <span className="bg-orange-100 text-orange-700 text-[10px] px-2 py-0.5 rounded font-bold uppercase mr-10">Status: Pending Approval</span>
-            </h3>
-            <div className="grid grid-cols-2 gap-y-4 gap-x-6">
-              <div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">License Type</span><span className="text-sm font-bold text-gray-900">Life & Health Insurance</span></div>
-              <div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Agency ID</span><span className="text-sm font-bold text-gray-900">TX-99201-B</span></div>
-              <div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Experience</span><span className="text-sm font-bold text-gray-900">8+ Years</span></div>
-              <div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Specialization</span><span className="text-sm font-bold text-gray-900">High Net Worth Estate Planning</span></div>
-            </div>
-          </div>
-
-          {/* Declaration[cite: 10] */}
-          <div className="bg-blue-50/50 p-5 rounded-xl border border-blue-100 flex items-start gap-4">
-             <input type="checkbox" id="declare" className="mt-1 w-4 h-4 rounded border-blue-300 text-[#0F478D] focus:ring-[#0F478D]" required />
-             <label htmlFor="declare" className="cursor-pointer">
-               <span className="text-sm font-bold text-gray-900 block mb-1">Declaration and Professional Conduct</span>
-               <span className="text-xs font-medium text-gray-600 leading-relaxed block">I hereby declare that all information provided is accurate to the best of my knowledge. I agree to abide by the Agent Compliance Agreement and the Terms of Service of ABCD Life Insurance.</span>
-             </label>
-          </div>
-
-        </div>
-
-        <div className="flex flex-col sm:flex-row justify-between items-center pt-6 border-t border-gray-100 gap-4">
-          <button onClick={() => navigate('../credentials')} className="w-full sm:w-auto px-6 py-3 border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center">
-            Edit Information
-          </button>
-          <button onClick={handleSubmit} disabled={isSubmitting} className="w-full sm:w-auto px-8 py-3 bg-[#0F478D] text-white font-bold rounded-xl hover:bg-[#0B1E46] transition-all flex items-center justify-center shadow-md disabled:opacity-70">
-            {isSubmitting ? (
-              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div> Processing...</>
-            ) : (
-              <>Submit Registration <CheckCircle2 className="w-4 h-4 ml-2" /></>
             )}
-          </button>
+
+            {/* STEP 2: PROFESSIONAL INFORMATION */}
+            {currentStep === 2 && (
+              <div className="space-y-4">
+                <div className="border-b pb-2 flex items-center gap-2 text-[#0B1F5B]">
+                  <Briefcase className="w-4 h-4" />
+                  <h3 className="text-xs font-black uppercase tracking-wider">Step 2 — Professional Information</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <select name="agentType" value={registrationForm.agentType} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-bold outline-none"><option>Individual Agent</option><option>Corporate Agent</option><option>POSP Agent</option><option>Agency Manager</option></select>
+                  {/* FIXED: Mapped explicit name tracking hooks parameters directly to the state property layout context */}
+                  <input type="text" disabled name="agentCode" value={registrationForm.agentCode} className="w-full h-10 bg-slate-100 border rounded-xl px-3 text-xs font-mono font-bold text-slate-500" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <input type="text" name="branchLocation" value={registrationForm.branchLocation} onChange={handleInputChange} placeholder="Branch Location *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  <input type="text" name="reportingManager" value={registrationForm.reportingManager} onChange={handleInputChange} placeholder="Reporting Manager *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  <input type="date" name="joiningDate" value={registrationForm.joiningDate} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: LICENSING & REGULATORY INFORMATION */}
+            {currentStep === 3 && (
+              <div className="space-y-4">
+                <div className="border-b pb-2 flex items-center gap-2 text-[#0B1F5B]">
+                  <FileText className="w-4 h-4" />
+                  <h3 className="text-xs font-black uppercase tracking-wider">Step 3 — Licensing & Regulatory Information</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <input type="text" name="irdaiLicenseNumber" value={registrationForm.irdaiLicenseNumber} onChange={handleInputChange} placeholder="IRDAI License Number *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-mono outline-none" />
+                  <input type="date" name="licenseIssueDate" value={registrationForm.licenseIssueDate} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  <input type="date" name="licenseExpiryDate" value={registrationForm.licenseExpiryDate} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                </div>
+                <input type="text" name="panNumber" value={registrationForm.panNumber} onChange={handleInputChange} placeholder="PAN Number *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-mono uppercase outline-none" />
+              </div>
+            )}
+
+            {/* STEP 4: BANKING INFORMATION */}
+            {currentStep === 4 && (
+              <div className="space-y-4">
+                <div className="border-b pb-2 flex items-center gap-2 text-[#0B1F5B]">
+                  <Landmark className="w-4 h-4" />
+                  <h3 className="text-xs font-black uppercase tracking-wider">Step 4 — Banking Information</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <input type="text" name="accountHolderName" value={registrationForm.accountHolderName} onChange={handleInputChange} placeholder="Account Holder Name *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  <input type="text" name="bankName" value={registrationForm.bankName} onChange={handleInputChange} placeholder="Bank Name *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <input type="password" name="accountNumber" value={registrationForm.accountNumber} onChange={handleInputChange} placeholder="Account Number *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-mono outline-none" />
+                  <input type="text" name="confirmAccountNumber" value={registrationForm.confirmAccountNumber} onChange={handleInputChange} placeholder="Confirm Account Number *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-mono outline-none" />
+                  <input type="text" name="ifscCode" value={registrationForm.ifscCode} onChange={handleInputChange} placeholder="IFSC Code *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-mono uppercase outline-none" />
+                </div>
+                <input type="text" name="branchName" value={registrationForm.branchName} onChange={handleInputChange} placeholder="Branch Name *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+              </div>
+            )}
+
+            {/* STEP 5: DOCUMENTS FILE MANIFEST */}
+            {currentStep === 5 && (
+              <div className="space-y-4">
+                <div className="border-b pb-2 flex items-center gap-2 text-[#0B1F5B]">
+                  <Upload className="w-4 h-4" />
+                  <h3 className="text-xs font-black uppercase tracking-wider">Step 5 — Verification Documents Manifest</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-semibold">
+                  {['panCardDoc', 'aadhaarCardDoc', 'photoDoc', 'addressProofDoc', 'irdaiLicenseDoc', 'bankProofDoc'].map(docKey => (
+                    <div key={docKey} className="p-3 border border-slate-200 bg-white rounded-xl flex items-center justify-between shadow-3xs">
+                      <span className="text-slate-900 font-bold uppercase text-[10px] tracking-wide">{docKey.replace(/([A-Z])/g, ' $1')} *</span>
+                      <button type="button" onClick={() => handleFileUploadSimulate(docKey)} className="h-7 px-3 border bg-slate-50 hover:bg-white rounded-lg text-[11px] font-black text-slate-700">{registrationForm[docKey] ? '✓ Linked' : 'Attach File'}</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* STEP 6: CREDENTIALS CONFIGURATION */}
+            {currentStep === 6 && (
+              <div className="space-y-4">
+                <div className="border-b pb-2 flex items-center gap-2 text-[#0B1F5B]">
+                  <Key className="w-4 h-4" />
+                  <h3 className="text-xs font-black uppercase tracking-wider">Step 6 — Credentials Configuration</h3>
+                </div>
+                <input type="text" name="username" value={registrationForm.username} onChange={handleInputChange} placeholder="Username Unique Account Token *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <input type="password" name="password" value={registrationForm.password} onChange={handleInputChange} placeholder="Secure Password *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-mono outline-none" />
+                  <input type="password" name="confirmPassword" value={registrationForm.confirmPassword} onChange={handleInputChange} placeholder="Confirm Secure Password *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-mono outline-none" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-3">
+                  <select name="securityQuestion" value={registrationForm.securityQuestion} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-bold text-slate-800 outline-none"><option>Mother's Maiden Name</option><option>First School Name</option><option>City of Birth</option></select>
+                  <input type="text" name="securityAnswer" value={registrationForm.securityAnswer} onChange={handleInputChange} placeholder="Security Answer Token *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                </div>
+              </div>
+            )}
+
+            {/* STEP 7: DECLARATIONS & LIVE DATABASE INGESTION */}
+            {currentStep === 7 && (
+              <div className="space-y-4">
+                <div className="border-b pb-2 flex items-center gap-2 text-[#0B1F5B]">
+                  <CheckSquare className="w-4 h-4" />
+                  <h3 className="text-xs font-black uppercase tracking-wider">Step 7 — Declarations & Compliance Checkpoint</h3>
+                </div>
+                <div className="space-y-3 p-4 bg-slate-50 rounded-xl border text-slate-500 text-[11px] font-medium leading-relaxed select-none">
+                  <label className="flex items-start gap-3 cursor-pointer hover:text-black"><input type="checkbox" name="amlDeclaration" checked={registrationForm.amlDeclaration} onChange={handleInputChange} className="rounded text-[#0B1F5B] w-4 h-4 mt-0.5 shrink-0" /><span><b>AML Compliance:</b> I confirm no records of compliance infractions under money laundering tracking guidelines. *</span></label>
+                  <label className="flex items-start gap-3 cursor-pointer hover:text-black"><input type="checkbox" name="kycConsent" checked={registrationForm.kycConsent} onChange={handleInputChange} className="rounded text-[#0B1F5B] w-4 h-4 mt-0.5 shrink-0" /><span><b>KYC Consent:</b> I grant clear consent verification clearances to authorize records deployment. *</span></label>
+                  <label className="flex items-start gap-3 cursor-pointer hover:text-black"><input type="checkbox" name="termsAcceptance" checked={registrationForm.termsAcceptance} onChange={handleInputChange} className="rounded text-[#0B1F5B] w-4 h-4 mt-0.5 shrink-0" /><span><b>Terms & Conditions:</b> I accept premium architecture core data tracking directives. *</span></label>
+                </div>
+                <h2 className="text-xl font-black text-black tracking-tight leading-none">Review & Submit Application</h2>
+<p className="text-xs font-medium text-slate-500 leading-relaxed mt-2">
+  Please ensure all captured attributes for match documentation metrics. 
+  <span 
+    onClick={() => navigate('/login')} 
+    className="block text-blue-600 font-bold underline cursor-pointer mt-2 hover:text-blue-800"
+  >
+    Return to Agent Login Page
+  </span>
+</p>
+              </div>
+            )}
+
+            {/* CORE NAVIGATION ROW FOOTER */}
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between font-bold text-xs mt-6">
+              <button 
+                type="button" 
+                disabled={currentStep === 1} 
+                onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))} 
+                className="h-10 px-4 border rounded-xl flex items-center gap-1 bg-white disabled:opacity-40 text-slate-700"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Previous</span>
+              </button>
+              {currentStep < 7 ? (
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    if (isStepValid()) {
+                      setCurrentStep(prev => Math.min(7, prev + 1));
+                    }
+                  }} 
+                  className="h-10 px-5 bg-[#0B1F5B] text-white font-black rounded-xl shadow-sm flex items-center gap-1"
+                >
+                  <span>Next Step</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <button 
+                  type="button" 
+                  onClick={handleFinalSubmitRegistration} 
+                  className="h-10 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-black rounded-xl shadow-sm flex items-center gap-1"
+                >
+                  <span>Submit Application</span>
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                </button>
+              )}
+            </div>
+
+          </form>
         </div>
-      </div>
-    </PageWrapper>
-  );
-}
 
-// ==========================================
-// 4. SHARED UI COMPONENTS
-// ==========================================
-
-function PageWrapper({ children }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="w-full h-full pb-10"
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-function Input({ label, type = "text", value, onChange, placeholder }) {
-  return (
-    <div className="w-full">
-      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
-        {label}
-      </label>
-      <input 
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium outline-none transition-all focus:bg-white focus:border-[#0F478D] focus:ring-2 focus:ring-blue-50 placeholder-gray-400"
-      />
+        <div className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm text-xs select-none space-y-3">
+          <div className="border-b pb-2 flex items-center gap-1.5 text-slate-400">
+            <ClipboardCheck className="w-4 h-4 text-slate-400" />
+            <h4 className="font-black uppercase tracking-wider text-[10px]">Onboarding Context Logs</h4>
+          </div>
+          <div className="space-y-2">
+            <div><span className="text-slate-400 text-[9px] uppercase block font-black">Cluster Status</span><span className="inline-block mt-1 bg-amber-50 border border-amber-200 text-amber-700 px-2 py-0.5 rounded font-extrabold text-[9px] uppercase tracking-wide">Awaiting Data Ingestion</span></div>
+            <p className="text-slate-400 font-medium italic text-[11px] leading-relaxed pt-1">Fill fields across steps. Submitting commits encrypted profiles natively to MongoDB Atlas.</p>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

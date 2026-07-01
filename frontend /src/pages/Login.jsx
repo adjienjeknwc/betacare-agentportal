@@ -1,133 +1,218 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { User, Lock, Eye, EyeOff, CheckCircle, ArrowRight, AlertCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+// src/pages/Login.jsx
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useLeads } from '../context/LeadContext';
+import { useAuth } from '../context/AuthContext'; // IMPORT FOR CONTEXT SYNCHRONIZATION
+import { Eye, EyeOff, Lock, User, Shield, CheckCircle2, AlertCircle } from 'lucide-react';
 
-export default function LoginPage() {
-  const { login, registrationSuccessMessage, setRegistrationSuccessMessage } = useAuth();
+export default function Login() {
   const navigate = useNavigate();
+  const { setMasterLeadsData, setWizardLeadForm } = useLeads();
+  
+  // Extract the handler from your AuthContext to update routing guards dynamically
+  const authContext = useAuth();
+  
+  const [agentId, setAgentId] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [errorBanner, setErrorBanner] = useState('');
 
-  const handleAuthenticationTrigger = () => {
-    setRegistrationSuccessMessage(''); // Clean alert message state
-    login();
-    navigate('/dashboard');
+  // Hydrate credentials from browser client layer memory strings if active tokens exist
+  useEffect(() => {
+    const savedAgentId = localStorage.getItem('remembered_agent_id');
+    const savedPassword = localStorage.getItem('remembered_password');
+    if (savedAgentId && savedPassword) {
+      setAgentId(savedAgentId);
+      setPassword(savedPassword);
+      setRememberMe(true);
+    }
+  }, []);
+
+  // ==========================================================================
+  // API INTENT HANDLER: AUTHORIZE AGENT
+  // ==========================================================================
+  const handleExistingAgentLogin = async (e) => {
+    e.preventDefault();
+    if (!agentId || !password) return;
+    setErrorBanner('');
+    
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agentId, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Authentication credentials rejected by Atlas Database.");
+      }
+
+      // 1. Commit backup strings across all common storage key variants
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('agent_token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.agent));
+      localStorage.setItem('agent_profile', JSON.stringify(data.agent));
+
+      // Handle Device Persistent Remember Me Flag Values
+      if (rememberMe) {
+        localStorage.setItem('remembered_agent_id', agentId);
+        localStorage.setItem('remembered_password', password);
+      } else {
+        localStorage.removeItem('remembered_agent_id');
+        localStorage.removeItem('remembered_password');
+      }
+
+      // ==========================================================================
+      // CRITICAL GUARD UPDATE: Hydrate your AuthContext State Provider
+      // Depending on how your context state functions are named, execute the sync:
+      // ==========================================================================
+      if (authContext && typeof authContext.login === 'function') {
+        await authContext.login(data.token, data.agent);
+      } else if (authContext && typeof authContext.setIsAuthenticated === 'function') {
+        authContext.setIsAuthenticated(true);
+      } else {
+        console.warn("⚠️ useAuth context found but login/setIsAuthenticated method was missing.");
+      }
+
+      console.log("🚀 Authorization synced across context hooks. Moving to workspace...");
+
+      // 2. Clear out local state logs and redirect to dashboard route securely
+      navigate('/dashboard');
+
+    } catch (error) {
+      console.error("❌ Authentication transaction failed:", error);
+      setErrorBanner(error.message);
+    }
+  };
+
+  const handleLaunchNewAgentRegistration = () => {
+    if (typeof setMasterLeadsData === 'function') setMasterLeadsData([]);
+    if (typeof setWizardLeadForm === 'function') setWizardLeadForm({});
+    navigate('/register');
   };
 
   return (
-    <div className="w-full h-screen overflow-hidden bg-[#F5F7FB] flex flex-col md:flex-row font-sans text-gray-900 antialiased select-none">
-      
-      {/* LEFT COLUMN: AUTH CONTRL PANEL */}
-      <div className="w-full md:w-[50%] h-full bg-white flex flex-col justify-between p-6 sm:p-10 lg:p-12 border-r border-gray-200">
-        <div className="shrink-0 flex justify-between items-center">
-          <h1 className="text-[#0B1F5B] text-xs font-extrabold tracking-wider uppercase m-0 p-0">
-            ABCD Life Insurance
-          </h1>
-        </div>
+    <div className="h-screen w-full flex bg-[#F5F7FB] font-sans antialiased text-left text-slate-700 select-none overflow-hidden">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24 bg-white relative z-10 py-6 h-full overflow-y-auto">
+        <div className="max-w-md w-full mx-auto space-y-8">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2.5 text-[#0B1F5B] font-black tracking-tight text-xl">
+              <img src="/logo.png" alt="Betacare Life Logo" className="w-9 h-9 rounded-lg object-contain bg-slate-50 border p-0.5 no-invert" />
+              <span className="text-lg">BETACARE LIFE</span>
+            </div>
+            <div className="pt-2">
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none">Welcome back</h1>
+              <p className="text-xs font-medium text-slate-400 mt-3">Enter your configuration parameters to mount the core tracking desktop terminal.</p>
+            </div>
+          </div>
 
-        <div className="w-full max-w-md mx-auto my-auto flex flex-col justify-center min-h-0 py-2">
-          
-          {/* Persistent Onboarding Status Alert Indicator Notification Banner */}
-          {registrationSuccessMessage && (
-            <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-2.5 text-emerald-800 text-xs font-medium animate-fadeIn">
-              <AlertCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <span>{registrationSuccessMessage}</span>
+          {errorBanner && (
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-2 animate-fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+              <span>{errorBanner}</span>
             </div>
           )}
 
-          <div className="flex flex-col text-left mb-5" style={{ textAlign: 'left' }}>
-            <h2 className="text-[#0B1F5B] text-2xl sm:text-3xl font-bold tracking-tight m-0 p-0 leading-tight">
-              Welcome back
-            </h2>
-            <p className="text-gray-500 text-xs sm:text-sm font-medium mt-1.5 m-0 p-0 leading-normal">
-              Enter your credentials to access the Premier Agent Portal.
-            </p>
-          </div>
+          <form onSubmit={handleExistingAgentLogin} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Agent ID / Email Address</label>
+              <div className="relative flex items-center">
+                <User className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
+                <input 
+                  type="text"
+                  required
+                  value={agentId}
+                  onChange={(e) => setAgentId(e.target.value)}
+                  placeholder="e.g. AGT-123456 or broker@betacarelife.com"
+                  className="w-full h-11 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0B1F5B] rounded-xl pl-10 pr-4 text-xs font-semibold text-slate-900 outline-none transition-all"
+                />
+              </div>
+            </div>
 
-          <LoginForm onAuthSuccess={handleAuthenticationTrigger} />
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Password</label>
+                <button type="button" className="text-[10px] font-black text-blue-600 hover:underline outline-none">Forgot Password?</button>
+              </div>
+              <div className="relative flex items-center">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
+                <input 
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full h-11 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0B1F5B] rounded-xl pl-10 pr-10 text-xs font-mono text-slate-900 outline-none transition-all"
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 p-1 rounded-lg text-slate-400 hover:text-slate-900 outline-none transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
 
-          <div className="mt-5 text-center text-xs text-gray-600 border-b border-gray-100 pb-4 shrink-0">
+            <div className="flex items-center justify-between pt-1">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-500">
+                <input 
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="rounded text-[#0B1F5B] focus:ring-[#0B1F5B] border-slate-300 w-4 h-4 cursor-pointer"
+                />
+                <span>Remember me on this device</span>
+              </label>
+            </div>
+
+            <button 
+              type="submit"
+              className="w-full h-11 bg-[#0B1F5B] hover:bg-black text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md mt-2 flex items-center justify-center gap-1.5 focus:outline-none cursor-pointer"
+            >
+              <span>Login Terminal →</span>
+            </button>
+          </form>
+
+          <div className="pt-4 text-center text-xs font-semibold text-slate-500 border-t border-slate-100">
             <span>Don't have an account? </span>
-            <Link to="/register/personal-details" className="text-[#0F478D] font-bold hover:underline">
+            <button 
+              type="button"
+              onClick={handleLaunchNewAgentRegistration}
+              className="text-[#0B1F5B] font-black hover:underline focus:outline-none bg-transparent border-none p-0 inline cursor-pointer"
+            >
               Register as an Agent
-            </Link>
+            </button>
           </div>
 
-          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-2.5 shrink-0">
-            <div className="flex items-center justify-center gap-1.5 w-full sm:w-auto bg-blue-50 border border-blue-100 px-3.5 py-1.5 rounded-full text-[10px] font-bold text-[#0F478D]">
-              <CheckCircle className="w-3.5 h-3.5 fill-current" />
+          <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 pt-4 flex-wrap gap-3">
+            <div className="flex items-center gap-1 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
               <span>MEMBER OF IRDAI</span>
             </div>
-            <div className="flex items-center justify-center gap-1.5 w-full sm:w-auto bg-gray-50 border border-gray-200 px-3.5 py-1.5 rounded-full text-[10px] font-semibold text-gray-600">
-              <Lock className="w-3.5 h-3.5 text-gray-400" />
+            <div className="flex items-center gap-1 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100">
+              <CheckCircle2 className="w-3 h-3 text-emerald-500" />
               <span>Secure SSL Encryption</span>
             </div>
           </div>
         </div>
-
-        <div className="text-center md:text-left block shrink-0 pt-2">
-          <p className="text-[10px] text-gray-400 font-medium m-0 p-0 leading-normal">
-            © 2024 ABCD Life Insurance. All rights reserved. 
-            <span className="mx-1">·</span>
-            <a href="#" className="hover:text-gray-600 underline sm:no-underline">Privacy Policy</a>
-            <span className="mx-1">|</span>
-            <a href="#" className="hover:text-gray-600 underline sm:no-underline">Terms</a>
-          </p>
-        </div>
       </div>
 
-      {/* RIGHT COLUMN: SEAL EMBLEM CONTAINER */}
-      <div className="w-full md:w-[50%] h-full bg-[#F5F7FB] flex items-center justify-center p-6 overflow-hidden">
-        <div className="w-full max-w-[200px] sm:max-w-[240px] lg:max-w-[280px] max-h-[48vh] aspect-[4/5] relative drop-shadow-[0_10px_24px_rgba(15,71,141,0.05)]">
-          <svg viewBox="0 0 400 500" className="w-full h-full fill-[#0F478D]" xmlns="http://www.w3.org/2000/svg">
-            <path d="M200 0C320 40 400 100 400 100V280C400 400 200 500 200 500C200 500 0 400 0 280V100C0 100 80 40 200 0Z" />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center pb-5 select-none">
-            <span className="text-white text-[7rem] sm:text-[9rem] lg:text-[11rem] font-black tracking-tighter antialiased">A</span>
+      <div className="hidden lg:flex w-1/2 bg-[#0F478D] items-center justify-center relative p-12 overflow-hidden h-full">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1F5B]/30 pointer-events-none z-10" />
+        <div className="relative z-20 flex flex-col items-center justify-center text-center space-y-6">
+          <div className="w-56 h-56 md:w-64 md:h-64 rounded-[40px] bg-white flex items-center justify-center shadow-2xl relative p-8">
+            <img src="/logo.png" alt="Betacare Life Logo" className="w-full h-full object-contain no-invert" />
+          </div>
+          <div className="max-w-sm space-y-2">
+            <h3 className="text-white font-black text-xl tracking-tight">Betacare Life Insurance Portal</h3>
+            <p className="text-blue-100/70 text-xs leading-relaxed font-medium">Access unified underwriting channels, customer quotation metrics graphs, and real-time active compliance logs.</p>
           </div>
         </div>
       </div>
     </div>
-  );
-}
-
-function LoginForm({ onAuthSuccess }) {
-  const [showPassword, setShowPassword] = useState(false);
-
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); onAuthSuccess(); }} className="space-y-3 shrink-0">
-      <div className="w-full flex flex-col text-left">
-        <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider mb-1">Agent ID / Email</label>
-        <div className="relative flex items-center w-full">
-          <span className="absolute left-3 z-10"><User className="w-3.5 h-3.5 text-gray-400" /></span>
-          <input type="text" placeholder="e.g. AGT-9982 or name@abcdlife.com" className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-xl text-xs outline-none text-gray-900 focus:border-[#0F478D]" required />
-        </div>
-      </div>
-
-      <div className="w-full flex flex-col text-left">
-        <div className="flex justify-between items-center mb-1">
-          <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wider">Password</label>
-          <a href="#" className="text-[10px] font-bold text-[#0F478D] hover:underline">Forgot Password?</a>
-        </div>
-        <div className="relative flex items-center w-full">
-          <span className="absolute left-3 z-10"><Lock className="w-3.5 h-3.5 text-gray-400" /></span>
-          <input type={showPassword ? "text" : "password"} placeholder="••••••••" className="w-full pl-9 pr-9 py-2 bg-white border border-gray-300 rounded-xl text-xs outline-none text-gray-900 focus:border-[#0F478D]" required />
-          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 text-gray-400">
-            {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-          </button>
-        </div>
-      </div>
-
-      <div className="flex items-center text-left py-0.5">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" className="w-3.5 h-3.5 rounded border-gray-300 text-[#0F478D] focus:ring-0" />
-          <span className="text-[11px] text-gray-600 font-medium">Remember me on this device</span>
-        </label>
-      </div>
-
-      <button type="submit" className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#0B1E46] text-white rounded-xl text-xs font-bold transition-all active:scale-[0.99]">
-        <span>Login</span>
-        <ArrowRight className="w-3.5 h-3.5" />
-      </button>
-    </form>
   );
 }

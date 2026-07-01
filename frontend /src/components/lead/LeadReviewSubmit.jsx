@@ -1,11 +1,13 @@
 // src/components/lead/LeadReviewSubmit.jsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLeads } from '../../context/LeadContext'; // Context binding
-import { ShieldCheck, CheckCircle, AlertCircle, ArrowLeft, Bell, Activity } from 'lucide-react';
+import { ShieldCheck, CheckCircle, AlertCircle, ArrowLeft, Bell, Activity, User, Briefcase, Shield } from 'lucide-react';
 
 export default function LeadReviewSubmit() {
   const navigate = useNavigate();
+  
+  // Pulling both the master array state and the live multi-step wizard form data from context
   const { wizardLeadForm, addNewLeadToMaster, resetWizardForm } = useLeads();
 
   const steps = [
@@ -17,33 +19,77 @@ export default function LeadReviewSubmit() {
     { label: '6. Review', active: true }
   ];
 
-  // COMMITTING DYNAMIC WIZARD DATA INDICES TO THE LEDGER
-  const handleFinalSubmit = (e) => {
+  // ==========================================================================
+  // REAL-WORLD RUNTIME DATA RESOLVER MATRIX
+  // Resolves keys directly from the multi-step form state to match your user inputs
+  // ==========================================================================
+  const resolvedData = useMemo(() => {
+    return {
+      fullName: wizardLeadForm?.fullName || 'New Lead File',
+      mobileNumber: wizardLeadForm?.mobileNumber || '—',
+      email: wizardLeadForm?.email || '—',
+      dob: wizardLeadForm?.dob || '—',
+      gender: wizardLeadForm?.gender || '—',
+      occupation: wizardLeadForm?.occupation || '—',
+      annualIncome: wizardLeadForm?.annualIncome || '1800000',
+      city: wizardLeadForm?.city || '—',
+      planInterest: wizardLeadForm?.planInterest || 'Term Life',
+      medicalHistory: wizardLeadForm?.medicalHistory || 'None Declared'
+    };
+  }, [wizardLeadForm]);
+
+  // Formats currency dynamically based on what you input in the financial step
+  const displayIncome = useMemo(() => {
+    const rawIncome = parseFloat(resolvedData.annualIncome);
+    return !isNaN(rawIncome)
+      ? `₹${rawIncome.toLocaleString('en-IN')}`
+      : '₹18,0,000';
+  }, [resolvedData.annualIncome]);
+
+  // COMMITTING DYNAMIC WIZARD DATA INDICES TO THE LEDGER (SECURED MULTI-USER API OPERATION)
+  const handleFinalSubmit = async (e) => {
     e.preventDefault();
 
-    const generatedId = `#LD-${Math.floor(1000 + Math.random() * 9000)}`;
-    const inputName = wizardLeadForm.fullName || 'Alexander Thompson';
-    const nameInitials = inputName.split(' ').map(n => n[0]).join('').toUpperCase();
+    // 1. EXTRACT SECURE SAAS AUTHORIZATION KEYCONTEXT
+    const token = localStorage.getItem('agent_token');
 
-    const cleanNewLeadObject = {
-      id: generatedId,
-      name: inputName,
-      interest: wizardLeadForm.planInterest || 'Term Life',
-      score: '88', // Dynamic baseline metric score
-      temp: 'HOT',  // Brand new incoming business is prioritized as HOT
-      status: '• Sent',
-      statusColor: 'text-blue-700 bg-blue-50 border-blue-100',
-      time: 'Just now',
-      initials: nameInitials,
-      avatarBg: 'bg-blue-600'
+    // 2. CONSTRUCT DATA PAYLOAD NORMALIZED TO THE MULTI-AGENT MONGO SCHEMA
+    const formattedLeadPayload = {
+      customerName: resolvedData.fullName,
+      email: resolvedData.email !== '—' ? resolvedData.email : '',
+      phone: resolvedData.mobileNumber !== '—' ? resolvedData.mobileNumber : '',
+      productInterest: resolvedData.planInterest,
+      temperature: 'Hot',  
+      status: 'New Lead',
+      score: 88
     };
 
-    // Push row directly to dynamic dashboard array state
-    addNewLeadToMaster(cleanNewLeadObject);
+    try {
+      // 3. EXECUTE NETWORK DISPATCH FOR PRIVATE TENANT DB STORAGE
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Binds this record to this login profile session context
+        },
+        body: JSON.stringify(formattedLeadPayload)
+      });
 
-    // Purge input variables memory and route directly to dashboard
-    resetWizardForm();
-    navigate('/lead-management');
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('🎉 Lead document successfully persistent in MongoDB!');
+        // 4. PURGE FORM CACHE AND NAVIGATE TO TABLE TO REFRESH LIVE RECORDS INSTANTLY
+        resetWizardForm();
+        navigate('/lead-management');
+      } else {
+        console.error('❌ Database schema context initialization failed:', result.message);
+        alert(`Failed to save portfolio lead: ${result.message}`);
+      }
+    } catch (err) {
+      console.error('❌ API pipeline execution boundary collapsed:', err);
+      alert("Network Connection Error: Could not reach the multi-tenant insurance core server database.");
+    }
   };
 
   return (
@@ -77,17 +123,70 @@ export default function LeadReviewSubmit() {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6 max-w-4xl mx-auto text-center">
-          <div className="space-y-2 select-none max-w-md mx-auto py-4">
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6 max-w-4xl mx-auto">
+          <div className="space-y-2 text-center max-w-md mx-auto py-2">
             <div className="w-12 h-12 bg-blue-50 border border-blue-100 text-[#0F478D] rounded-2xl flex items-center justify-center mx-auto shadow-3xs mb-2">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <h2 className="text-xl font-black text-black tracking-tight leading-none">Review & Submit Application</h2>
             <p className="text-xs font-medium text-slate-500 leading-relaxed">
-              Please ensure all captured attributes for <span className="font-bold text-slate-900">{wizardLeadForm.fullName || 'Alexander Thompson'}</span> match documentation metrics before committing data to active grids.
+              Please ensure all captured attributes for <span className="font-bold text-[#0F478D]">{resolvedData.fullName}</span> match documentation metrics before committing data to active grids.
             </p>
           </div>
 
+          {/* TWO-COLUMN MATRIX SUMMARY DECK */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto text-xs font-semibold text-slate-600">
+            
+            {/* STEP 1 & 2 DATA: PERSONAL & CONTACT PARAMETERS */}
+            <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-2.5 shadow-2xs">
+              <div className="flex items-center gap-1.5 text-[#0B1F5B] font-black border-b pb-1.5 uppercase text-[10px] tracking-wider select-none">
+                <User className="w-3.5 h-3.5 text-blue-500" />
+                <span>Personal & Contact Info</span>
+              </div>
+              <div className="flex justify-between"><span>Full Name:</span><span className="text-black font-bold">{resolvedData.fullName}</span></div>
+              <div className="flex justify-between"><span>Gender Profile:</span><span className="text-slate-900 font-medium">{resolvedData.gender}</span></div>
+              <div className="flex justify-between"><span>Date of Birth:</span><span className="text-slate-900 font-medium">{resolvedData.dob}</span></div>
+              <div className="flex justify-between"><span>Contact Phone:</span><span className="text-black font-medium">{resolvedData.mobileNumber}</span></div>
+              <div className="flex justify-between"><span>Email Address:</span><span className="text-black font-medium truncate max-w-[150px]">{resolvedData.email}</span></div>
+              <div className="flex justify-between"><span>City / Region:</span><span className="text-slate-900 font-medium">{resolvedData.city}</span></div>
+            </div>
+
+            {/* STEP 3 & 4 DATA: FINANCIAL & POLICY SPECIFICATIONS */}
+            <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-2.5 shadow-2xs">
+              <div className="flex items-center gap-1.5 text-[#0B1F5B] font-black border-b pb-1.5 uppercase text-[10px] tracking-wider select-none">
+                <Briefcase className="w-3.5 h-3.5 text-blue-500" />
+                <span>Financial & Plan Profile</span>
+              </div>
+              <div className="flex justify-between"><span>Occupation:</span><span className="text-black font-medium truncate max-w-[150px]">{resolvedData.occupation}</span></div>
+              <div className="flex justify-between"><span>Annual Income:</span><span className="text-[#0B1F5B] font-black">{displayIncome}</span></div>
+              <div className="flex justify-between"><span>Smoking Status:</span><span className="text-slate-900 font-medium">{wizardLeadForm?.smokingStatus || 'Non-Smoker'}</span></div>
+              <div className="flex justify-between"><span>Selected Plan:</span><span className="text-emerald-600 font-bold">{resolvedData.planInterest}</span></div>
+              <div className="flex justify-between"><span>Medical Conditions:</span><span className="text-slate-900 font-medium truncate max-w-[130px]">{resolvedData.medicalHistory}</span></div>
+            </div>
+
+            {/* STEP 5 DATA: DOCUMENT TRACKING VAULT SUMMARY */}
+            <div className="border border-slate-200 rounded-xl p-4 bg-white md:col-span-2 space-y-2 shadow-2xs">
+              <div className="flex items-center gap-1.5 text-[#0B1F5B] font-black border-b pb-1.5 uppercase text-[10px] tracking-wider select-none">
+                <Shield className="w-3.5 h-3.5 text-blue-500" />
+                <span>Onboarded Document Attachments Tracking Vault</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[11px] font-medium pt-1 text-slate-500">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                  <span>Identity Proof (PAN Card / Driving License)</span>
+                </div>
+                <div className="text-emerald-600 font-bold text-right">✓ Staged Successfully</div>
+                
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                  <span>Income Statement (Form 16 / Salary Slips)</span>
+                </div>
+                <div className="text-emerald-600 font-bold text-right">✓ Upload Verified</div>
+              </div>
+            </div>
+          </div>
+
+          {/* UNDERWRITING COMPLIANCE METRICS CHECKLIST */}
           <div className="border border-slate-200 rounded-xl p-5 bg-slate-50/50 text-left space-y-3.5 max-w-2xl mx-auto text-xs font-medium">
             <div className="flex items-center gap-2 text-[#0F478D] font-bold border-b border-slate-200/60 pb-2 mb-1">
               <CheckCircle className="w-4 h-4" />
@@ -96,55 +195,63 @@ export default function LeadReviewSubmit() {
             <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-slate-600">
               <div>• Profile Form Completeness</div> <div className="text-emerald-600 font-bold text-right">100% Secure</div>
               <div>• Reachability Channels Validated</div> <div className="text-emerald-600 font-bold text-right">Active Dialing Node</div>
-              <div>• Target Configured Income</div> <div className="text-slate-900 font-bold text-right">₹{wizardLeadForm.annualIncome || '18,00,000'}</div>
+              <div>• Target Configured Income</div> <div className="text-slate-900 font-bold text-right">{displayIncome}</div>
               <div>• Verification Checksum Status</div> <div className="text-emerald-600 font-bold text-right">OK</div>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-slate-100 flex items-center justify-between max-w-2xl mx-auto select-none">
-            <div className="flex items-center gap-1.5 text-slate-400 text-[11px] font-bold">
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between max-w-2xl mx-auto select-none">
+            <div className="flex items-center gap-1.5 text-slate-400 text-[11px] font-bold mx-auto">
               <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
               <span>Actions are final and immutable once committed.</span>
             </div>
           </div>
         </div>
         
+        {/* COMPROBATION FOOTER ACTION INTERFACES */}
+        {/* COMPROBATION FOOTER ACTION INTERFACES */}
         <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end gap-3 select-none">
-          {/* QUICK QUOTE SANDBOX PASS-THROUGH */}
           <button 
             type="button" 
-            onClick={() => navigate(`/lead-management/generate-quote/${wizardLeadForm.fullName ? 'DYNAMIC' : 'LD-8926'}`, { 
-              state: { 
-                leadData: {
-                  fullName: wizardLeadForm.fullName || 'Alexander Thompson',
-                  mobileNumber: wizardLeadForm.mobileNumber || '9876543210',
-                  email: wizardLeadForm.email || 'alex.thompson@enterprise.io',
-                  dob: wizardLeadForm.dob || '1988-05-14',
-                  gender: wizardLeadForm.gender || 'Male',
-                  occupation: wizardLeadForm.occupation || 'Software Engineer',
-                  annualIncome: wizardLeadForm.annualIncome || '1800000',
-                  city: wizardLeadForm.city || 'Mumbai',
-                  state: 'Maharashtra',
-                  smokingStatus: wizardLeadForm.smokingStatus || 'Non-Smoker'
+            onClick={async () => {
+              // 1. Commit the active lead to the database securely first
+              const isSaved = await handleFinalSubmit({ preventDefault: () => {} });
+              
+              // 2. Route instantly to your dynamic calculator view using the exact live fields you filled out
+              navigate(`/lead-management/generate-quote/new-lead`, { 
+                state: {
+                  leadData: {
+                    fullName: resolvedData.customerName,
+                    mobileNumber: wizardLeadForm.mobileNumber || '',
+                    email: wizardLeadForm.email || '',
+                    dob: wizardLeadForm.dob || '',
+                    gender: wizardLeadForm.gender || 'Male',
+                    occupation: wizardLeadForm.occupation || '',
+                    annualIncome: wizardLeadForm.annualIncome || '1800000',
+                    city: wizardLeadForm.city || '',
+                    state: wizardLeadForm.state || 'Maharashtra',
+                    smokingStatus: wizardLeadForm.smokingStatus || 'Non-Smoker',
+                    coverageAmount: wizardLeadForm.coverageAmount || '28500000',
+                    policyTerm: wizardLeadForm.policyTerm || '35'
+                  }
                 }
-              } 
-            })}
-            className="w-full sm:w-auto h-11 px-5 border border-[#0F478D] bg-white text-[#0F478D] font-bold text-xs rounded-xl hover:bg-blue-50/50 transition-all flex items-center justify-center gap-1.5 focus:outline-none"
+              });
+            }} 
+            className="w-full sm:w-auto h-11 px-6 bg-[#0B1F5B] hover:bg-[#0B1E46] text-white font-black rounded-xl transition-all shadow-md focus:outline-none flex items-center justify-center gap-1.5"
           >
-            <Activity className="w-4 h-4" />
-            <span>Generate Quote</span>
+            <Activity className="w-4 h-4 text-emerald-400" />
+            <span>Save & Generate Quote</span>
           </button>
 
-          {/* RE-BOUND DISPATCH HOOK FOR THE REAL TIME CRM ARRAY */}
           <button 
             type="button" 
-            onClick={handleFinalSubmit}
-            className="w-full sm:w-auto h-11 px-6 bg-[#0B1F5B] hover:bg-[#0B1E46] text-white font-black text-xs rounded-xl shadow-sm transition-all flex items-center justify-center focus:outline-none"
+            onClick={handleFinalSubmit} 
+            className="w-full sm:w-auto h-11 px-6 bg-black hover:bg-slate-800 text-white font-black text-xs rounded-xl shadow-sm transition-all flex items-center justify-center focus:outline-none"
           >
             <span>Commit Lead Portfolio</span>
           </button>
         </div>
-      </main>
-    </div>
+        </div>
+        </div>
   );
 }

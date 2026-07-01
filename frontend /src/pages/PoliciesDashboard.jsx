@@ -1,551 +1,580 @@
 // src/pages/PoliciesDashboard.jsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { 
   Search, Plus, Download, Eye, Clock, ChevronDown, MoreVertical, Shield, 
   CreditCard, Calendar, AlertTriangle, ArrowLeft, ArrowRight, Save, User, 
-  Briefcase, DollarSign, Heart, Layers, CheckCircle2, ShieldAlert, FileText, Check, Upload, 
+  Briefcase, DollarSign, Heart, Layers, CheckCircle2, ShieldAlert, FileText, 
+  Check, Upload, RefreshCw, X, FileSpreadsheet, DownloadCloud, Mail, Send, CheckSquare, Square
 } from 'lucide-react';
 
 export default function PoliciesDashboard() {
   const navigate = useNavigate();
-  
-  // 1. CORE SEARCH & LIFECYCLE FILTER DASHBOARD STATES
+  const { activeRole } = useAuth();
+  const currentAgentName = localStorage.getItem('agentName') || "Rohan Malhotra";
+
+  // State Management
+  const [policies, setPolicies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeMenuId, setActiveMenuId] = useState(null);
+
+  // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [timeframe, setTimeframe] = useState('Last 6 Months');
-  const [activeMenu, setActiveMenu] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 2; 
+  const [freqFilter, setFreqFilter] = useState('All');
+  const [sortBy, setSortBy] = useState('Latest');
 
-  // 2. ONBOARDING WIZARD MODAL STATE ENGAGEMENTS
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [wizardStep, setWizardStep] = useState(1);
+  // Bulk Selection State
+  const [selectedPolicyIds, setSelectedPolicyIds] = useState([]);
 
-  // 3. MASTER APPLICATION FORM DATA DATA TREES
-  const [policyForm, setPolicyForm] = useState({
-    // Step 1: Select Lead
-    selectedLeadId: 'Sarah Mitchell',
-    // Step 2: Plan Customization
-    planType: 'Term Life',
-    sumAssured: '12500000',
-    paymentFrequency: 'Annual',
-    // Step 3: Client Details
-    fullName: 'Alexander Thompson',
-    dob: '1988-05-14',
-    nationalId: 'XXX-XX-XXXX',
-    maritalStatus: 'Married',
-    occupation: 'Software Engineer',
-    engageHazardous: 'No',
-    smokingStatus: 'Non-Smoker',
-    annualIncome: '120000',
-    nomineeName: 'Sarah Thompson',
-    nomineeRelation: 'Spouse',
-    nomineeShare: '100',
-    agentNotes: '',
-    // Step 4: Documents Upload Manifest Marks
-    identityProofUploaded: true,
-    addressProofUploaded: false,
-    incomeProofUploaded: true
-  });
+  const fetchPolicies = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('agent_token');
+      const res = await fetch('/api/policies', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-agent-role': localStorage.getItem('agent_role') || 'Sales Agent'
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPolicies(data.data || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // 4. MAIN CENTRAL DATA BASE LIST GRID RECORDS
-  const [policyRecords, setPolicyRecords] = useState([
-    { id: 'AB-LIFE-7728391', name: 'Arjun Mehta', initials: 'AM', color: 'bg-blue-100 text-[#0B1F5B]', plan: 'Heritage Elite Term', type: 'Term', sumAssured: 12500000, premium: 20532, renewal: 'Oct 25, 2026', status: 'Active', badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-    { id: 'AB-LIFE-9912044', name: 'Sarah Kapoor', initials: 'SK', color: 'bg-purple-100 text-purple-700', plan: 'Wealth Secure Plus', type: 'Endowment', sumAssured: 8500000, premium: 15200, renewal: 'May 12, 2026', status: 'Renewal Due', badgeClass: 'bg-amber-50 text-amber-700 border-amber-200' },
-    { id: 'AB-LIFE-4431980', name: 'Rajiv Jain', initials: 'RJ', color: 'bg-indigo-100 text-indigo-700', plan: 'Smart Term Plan', type: 'Term', sumAssured: 20000000, premium: 32100, renewal: 'Jan 18, 2027', status: 'Active', badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-    { id: 'AB-LIFE-2211876', name: 'Priya Lakshmi', initials: 'PL', color: 'bg-slate-100 text-slate-700', plan: 'Family Shield', type: 'Whole Life', sumAssured: 5000000, premium: 8900, renewal: 'Mar 05, 2026', status: 'Lapsed', badgeClass: 'bg-rose-50 text-rose-700 border-rose-200' }
-  ]);
+  useEffect(() => {
+    fetchPolicies();
+  }, []);
 
-  // 5. DATA FILTERS AND PAGINATION CALCULATOR RUNNERS
-  const filteredRecords = useMemo(() => {
-    return policyRecords.filter(row => {
-      const matchesSearch = 
-        row.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        row.plan.toLowerCase().includes(searchQuery.toLowerCase());
-        
-      const matchesType = typeFilter === 'All' || row.type === typeFilter;
-      const matchesStatus = statusFilter === 'All' || row.status === statusFilter;
+  const getDynamicInitials = (nameString) => {
+    const words = nameString.trim().split(/\s+/);
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return words[0][0] ? words[0].slice(0, 2).toUpperCase() : "AA";
+  };
 
-      return matchesSearch && matchesType && matchesStatus;
-    });
-  }, [policyRecords, searchQuery, typeFilter, statusFilter]);
-
-  const totalPages = Math.ceil(filteredRecords.length / recordsPerPage) || 1;
-  const verifiedCurrentPage = currentPage > totalPages ? totalPages : currentPage;
-
-  const paginatedRecords = useMemo(() => {
-    const startIndex = (verifiedCurrentPage - 1) * recordsPerPage;
-    return filteredRecords.slice(startIndex, startIndex + recordsPerPage);
-  }, [filteredRecords, verifiedCurrentPage]);
-
-  // 6. HISTOGRAM RENDERING COORDINATES MAPS
-  const barChartMetrics = [
-    { month: 'Jan', heightPercent: '42%' },
-    { month: 'Feb', heightPercent: '62%' },
-    { month: 'Mar', heightPercent: '56%' },
-    { month: 'Apr', heightPercent: '74%' },
-    { month: 'May', heightPercent: '82%' },
-    { month: 'Jun', heightPercent: '94%' }
-  ];
-
-  const distributionMetrics = [
-    { label: 'Term Life', percentage: '45%', color: 'bg-[#0252D7]' },
-    { label: 'Whole Life', percentage: '30%', color: 'bg-[#031B33]' },
-    { label: 'Endowment', percentage: '25%', color: 'bg-[#D1E2FF]' }
-  ];
-
-  // SUBMIT WIZARD CREATION AND ADD TO ACTIVE POLICIES TABLE DISPATCH
-  const handleFinalizeSubmission = () => {
-    const generatedPolicyId = `AB-LIFE-${Math.floor(1000000 + Math.random() * 9000000)}`;
-    const newRecordNode = {
-      id: generatedPolicyId,
-      name: policyForm.fullName,
-      initials: policyForm.fullName.split(' ').map(n => n[0]).join(''),
-      color: 'bg-emerald-100 text-emerald-800',
-      plan: policyForm.planType === 'Term Life' ? 'Heritage Elite Term' : 'Wealth Secure Plus',
-      type: policyForm.planType === 'Term Life' ? 'Term' : 'Endowment',
-      sumAssured: parseInt(policyForm.sumAssured),
-      premium: policyForm.planType === 'Term Life' ? 20532 : 15200,
-      renewal: 'Jun 11, 2027',
-      status: 'Active',
-      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+  // Helper for Status Badge formatting
+  const getStatusBadge = (status) => {
+    const configs = {
+      'Active': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      'Pending Payment': 'bg-slate-50 text-slate-700 border-slate-200',
+      'Grace Period': 'bg-amber-50 text-amber-700 border-amber-200',
+      'Lapsed': 'bg-rose-50 text-rose-700 border-rose-200',
+      'Cancelled': 'bg-slate-100 text-slate-500 border-slate-300',
+      'Matured': 'bg-blue-50 text-blue-700 border-blue-200',
+      'Surrendered': 'bg-purple-50 text-purple-750 border-purple-200'
     };
+    return configs[status] || 'bg-slate-50 text-slate-600 border-slate-200';
+  };
 
-    setPolicyRecords(prev => [newRecordNode, ...prev]);
-    setIsWizardOpen(false);
-    setWizardStep(1);
+  // Helper for Renewal status badge
+  const getRenewalBadge = (dueDateStr) => {
+    if (!dueDateStr) return { text: 'Paid', styles: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    const due = new Date(dueDateStr);
+    const today = new Date();
+    const diffTime = due - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return { text: 'Overdue', styles: 'bg-rose-50 text-rose-700 border-rose-200' };
+    } else if (diffDays === 0) {
+      return { text: 'Due Today', styles: 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse' };
+    } else {
+      return { text: 'Upcoming', styles: 'bg-blue-50 text-blue-700 border-blue-200' };
+    }
+  };
+
+  // Dashboard calculations from live dataset
+  const metrics = useMemo(() => {
+    const totalCount = policies.length;
+    const activeCount = policies.filter(p => p.policyStatus === 'Active').length;
+    
+    // Issued today
+    const todayStr = new Date().toISOString().split('T')[0];
+    const issuedToday = policies.filter(p => p.createdAt?.split('T')[0] === todayStr).length;
+
+    const sumAssuredVal = policies.reduce((acc, p) => acc + (p.sumAssured || 0), 0);
+    const annualPremiumVal = policies.reduce((acc, p) => acc + (p.totalAnnualPremium || 0), 0);
+
+    // Premium due this month
+    const thisMonth = new Date().getMonth();
+    const thisYear = new Date().getFullYear();
+    const premiumDueThisMonth = policies.reduce((acc, p) => {
+      if (!p.nextPremiumDueDate) return acc;
+      const d = new Date(p.nextPremiumDueDate);
+      if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) {
+        return acc + (p.totalAnnualPremium || 0);
+      }
+      return acc;
+    }, 0);
+
+    // Lapsed count
+    const lapsedCount = policies.filter(p => p.policyStatus === 'Lapsed').length;
+
+    return {
+      total: totalCount,
+      active: activeCount,
+      issuedToday,
+      sumAssured: sumAssuredVal,
+      annualPremium: annualPremiumVal,
+      dueThisMonth: premiumDueThisMonth,
+      lapsed: lapsedCount
+    };
+  }, [policies]);
+
+  // Filters & Sorting Execution
+  const filteredPolicies = useMemo(() => {
+    let result = [...policies];
+
+    // Search query match
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(row => 
+        row.policyNumber.toLowerCase().includes(q) ||
+        row.customerName.toLowerCase().includes(q) ||
+        (row.planName && row.planName.toLowerCase().includes(q))
+      );
+    }
+
+    // Policy Type
+    if (typeFilter !== 'All') {
+      result = result.filter(row => row.planType === typeFilter);
+    }
+
+    // Policy Status
+    if (statusFilter !== 'All') {
+      result = result.filter(row => row.policyStatus === statusFilter);
+    }
+
+    // Premium Frequency
+    if (freqFilter !== 'All') {
+      result = result.filter(row => row.paymentFrequency === freqFilter);
+    }
+
+    // Sorting
+    if (sortBy === 'Latest') {
+      result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } else if (sortBy === 'Renewal') {
+      result.sort((a, b) => new Date(a.nextPremiumDueDate) - new Date(b.nextPremiumDueDate));
+    } else if (sortBy === 'Premium') {
+      result.sort((a, b) => (b.totalAnnualPremium || 0) - (a.totalAnnualPremium || 0));
+    }
+
+    return result;
+  }, [policies, searchQuery, typeFilter, statusFilter, freqFilter, sortBy]);
+
+  // DYNAMIC CHART WEIGHTS CALCULATORS
+  const barChartMetrics = useMemo(() => {
+    const last6Months = [];
+    const today = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      last6Months.push({
+        monthName: d.toLocaleString('en-US', { month: 'short' }),
+        monthNum: d.getMonth(),
+        year: d.getFullYear(),
+        total: 0
+      });
+    }
+
+    policies.forEach(p => {
+      const pDate = new Date(p.createdAt || p.policyStartDate || today);
+      const pMonth = pDate.getMonth();
+      const pYear = pDate.getFullYear();
+      
+      const match = last6Months.find(m => m.monthNum === pMonth && m.year === pYear);
+      if (match) {
+        match.total += (p.premiumAmount || p.totalAnnualPremium || 0);
+      }
+    });
+
+    const maxVal = Math.max(...last6Months.map(m => m.total), 10000); // fallback min value to avoid division by zero
+
+    return last6Months.map(m => ({
+      month: m.monthName.toUpperCase(),
+      val: m.total,
+      heightPercent: `${Math.max(10, Math.min(100, (m.total / maxVal) * 90 + 10))}%`
+    }));
+  }, [policies]);
+
+  const distributionMetrics = useMemo(() => {
+    if (policies.length === 0) {
+      return [
+        { label: 'Term', percentage: '0%', color: 'bg-[#0252D7]' },
+        { label: 'Whole Life', percentage: '0%', color: 'bg-[#031B33]' },
+        { label: 'ULIP', percentage: '0%', color: 'bg-[#D1E2FF]' }
+      ];
+    }
+    const terms = policies.filter(p => p.planType === 'Term').length;
+    const whole = policies.filter(p => p.planType === 'Whole Life' || p.planType === 'Whole').length;
+    const ulip = policies.filter(p => p.planType === 'ULIP').length;
+    const total = policies.length;
+
+    return [
+      { label: 'Term', percentage: `${Math.round((terms / total) * 100)}%`, color: 'bg-[#0252D7]' },
+      { label: 'Whole Life', percentage: `${Math.round((whole / total) * 100)}%`, color: 'bg-[#031B33]' },
+      { label: 'ULIP', percentage: `${Math.round((ulip / total) * 100)}%`, color: 'bg-[#D1E2FF]' }
+    ];
+  }, [policies]);
+
+  // Bulk interactions
+  const toggleSelectPolicy = (id) => {
+    setSelectedPolicyIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedPolicyIds.length === filteredPolicies.length) {
+      setSelectedPolicyIds([]);
+    } else {
+      setSelectedPolicyIds(filteredPolicies.map(p => p._id));
+    }
+  };
+
+  const handleBulkExport = () => {
+    alert(`Exporting ${selectedPolicyIds.length} policies to spreadsheet workbook...`);
+    setSelectedPolicyIds([]);
+  };
+
+  const handleBulkRemind = () => {
+    alert(`Dispatched renewal payment reminders to ${selectedPolicyIds.length} customer contact endpoints.`);
+    setSelectedPolicyIds([]);
+  };
+
+  // Row operations
+  const triggerDownloadPDF = (policyNo) => {
+    alert(`Generating Official Policy Schedule Contract PDF for Policy ${policyNo}...`);
+    setActiveMenuId(null);
+  };
+
+  const triggerReminder = (clientName) => {
+    alert(`Sending premium renewal email/SMS notification to ${clientName}.`);
+    setActiveMenuId(null);
+  };
+
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setTypeFilter('All');
+    setStatusFilter('All');
+    setFreqFilter('All');
+    setSortBy('Latest');
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-[#F5F7FB] text-left font-sans antialiased pb-12 w-full relative">
+    <div className="flex-1 flex flex-col min-h-screen bg-[#F5F7FB] text-left font-sans antialiased pb-16 w-full relative">
       
-      {/* GLOBAL PROFILE HEADER BAR */}
-      <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200 rounded-2xl p-4 shadow-3xs select-none">
-        <div className="relative flex items-center flex-1 max-w-xl">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
-          <input 
-            type="text" 
-            placeholder="Search by Policy No, Customer Name or Policy Holder..." 
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            className="w-full h-10 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 text-xs font-semibold text-slate-900 outline-none focus:bg-white focus:border-[#0B1F5B] transition-all"
-          />
+      {/* Header Panel */}
+      <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-40 w-full shadow-3xs">
+        <div className="flex flex-col items-start text-left">
+          <h1 className="font-black text-[#0B1F5B] tracking-tight text-[22px] leading-tight">Active Policy Dashboard</h1>
+          <span className="text-slate-400 font-bold block mt-1 uppercase tracking-wider text-[10px]">
+            Enterprise summary logs, billing collections, and coverage registers.
+          </span>
         </div>
 
-        <div className="flex items-center gap-4 shrink-0 justify-between md:justify-end">
+        <div className="flex items-center gap-2">
           <button 
             type="button" 
-            onClick={() => { setIsWizardOpen(true); setWizardStep(1); }}
-            className="bg-[#0B1F5B] hover:bg-black text-white text-xs font-bold h-10 px-4 rounded-xl flex items-center gap-1.5 transition-all shadow-sm focus:outline-none"
+            onClick={() => navigate('/policies/new')} 
+            className="h-10 px-4 bg-[#0B1F5B] hover:bg-black text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 transition-all focus:outline-none cursor-pointer"
           >
             <Plus className="w-4 h-4 shrink-0" />
-            <span>Add Policy</span>
+            <span>Issue New Policy</span>
           </button>
-          <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
-          <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <h4 className="text-xs font-bold text-slate-900 leading-none">Alex Thompson</h4>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mt-0.5">Senior Broker</span>
-            </div>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#0B1F5B] to-indigo-900 flex items-center justify-center text-white text-xs font-black shadow-md select-none">AT</div>
-          </div>
+          
+          <button 
+            type="button" 
+            onClick={fetchPolicies}
+            className="p-2.5 border border-slate-200 bg-white text-slate-500 rounded-xl hover:bg-slate-50 transition-colors focus:outline-none cursor-pointer"
+            title="Refresh Dashboard"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
         </div>
-      </div>
+      </header>
 
-      {/* DASHBOARD HEADER TITLE */}
-      <div className="text-left select-none mt-6 px-6">
-        <h1 className="text-2xl font-bold text-[#0B1F5B] tracking-tight leading-none">Active Policies</h1>
-        <p className="text-xs font-medium text-slate-500 mt-1.5">Enterprise summary logs, collection tracking timelines, and compliance profiles.</p>
-      </div>
+      <main className="max-w-[1450px] w-full mx-auto px-6 py-6 space-y-6">
 
-      {/* FILTER CONTROL PANEL */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-slate-200 p-4 rounded-xl shadow-3xs select-none mx-6 mt-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 h-9 min-w-[160px]">
-            <span className="text-xs font-bold text-slate-500 mr-1">Policy Type:</span>
-            <span className="text-xs font-black text-slate-900">{typeFilter}</span>
-            <select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer font-bold">
+        {/* KPI CARDS GRID */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 select-none">
+          {[
+            { label: 'Total Active Policies', value: metrics.active, color: 'text-emerald-600 border-emerald-200 bg-emerald-50/10' },
+            { label: 'Policies Issued Today', value: metrics.issuedToday, color: 'text-blue-600 border-blue-200 bg-blue-50/10' },
+            { label: 'Total Sum Assured', value: `₹${metrics.sumAssured.toLocaleString('en-IN')}`, color: 'text-slate-900 border-slate-200 font-black' },
+            { label: 'Total Annual Premium', value: `₹${metrics.annualPremium.toLocaleString('en-IN')}`, color: 'text-[#0B1F5B] border-blue-300 bg-blue-50/20 font-black' },
+            { label: 'Premium Due This Month', value: `₹${metrics.dueThisMonth.toLocaleString('en-IN')}`, color: 'text-amber-600 border-amber-200 bg-amber-50/10' },
+            { label: 'Lapsed Policies', value: metrics.lapsed, color: 'text-rose-600 border-rose-200 bg-rose-50/10' }
+          ].map((kpi, idx) => (
+            <div key={idx} className={`bg-white border rounded-2xl p-4 shadow-3xs flex flex-col items-start ${kpi.color}`}>
+              <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">{kpi.label}</span>
+              <span className="text-xl font-black mt-1 block leading-none">{kpi.value}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* SEARCH & FILTERS CONTROLS */}
+        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-3xs grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end text-xs font-bold text-slate-700 select-none">
+          <div className="flex flex-col items-start w-full md:col-span-2 lg:col-span-2">
+            <label className="text-[10px] uppercase font-black text-slate-400 mb-1.5 flex items-center gap-1"><Search className="w-3 h-3" /> Search Policies</label>
+            <input 
+              type="text" 
+              placeholder="Search Policy No, Name, Plan..." 
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-900 font-semibold focus:border-[#0F478D] transition-colors" 
+            />
+          </div>
+
+          <div className="flex flex-col items-start w-full">
+            <label className="text-[10px] uppercase font-black text-slate-400 mb-1.5">Policy Status</label>
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-900 font-bold focus:border-[#0F478D]">
+              <option value="All">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Pending Payment">Pending Payment</option>
+              <option value="Grace Period">Grace Period</option>
+              <option value="Lapsed">Lapsed</option>
+              <option value="Cancelled">Cancelled</option>
+              <option value="Matured">Matured</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col items-start w-full">
+            <label className="text-[10px] uppercase font-black text-slate-400 mb-1.5">Policy Type</label>
+            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-900 font-bold focus:border-[#0F478D]">
               <option value="All">All Types</option>
               <option value="Term">Term Plan</option>
               <option value="Whole Life">Whole Life</option>
-              <option value="Endowment">Endowment</option>
+              <option value="ULIP">ULIP</option>
             </select>
-            <ChevronDown className="w-3 h-3 text-slate-400 ml-auto" />
           </div>
 
-          <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 h-9 min-w-[160px]">
-            <span className="text-xs font-bold text-slate-500 mr-1">Status:</span>
-            <span className="text-xs font-black text-slate-900">{statusFilter}</span>
-            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer font-bold">
-              <option value="All">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="Renewal Due">Renewal Due</option>
-              <option value="Lapsed">Lapsed</option>
+          <div className="flex flex-col items-start w-full">
+            <label className="text-[10px] uppercase font-black text-slate-400 mb-1.5">Frequency</label>
+            <select value={freqFilter} onChange={e => setFreqFilter(e.target.value)} className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-900 font-bold focus:border-[#0F478D]">
+              <option value="All">All cycles</option>
+              <option value="Annual">Annual</option>
+              <option value="Half-Yearly">Half-Yearly</option>
+              <option value="Quarterly">Quarterly</option>
+              <option value="Monthly">Monthly</option>
             </select>
-            <ChevronDown className="w-3 h-3 text-slate-400 ml-auto" />
           </div>
-          
-          <button type="button" onClick={() => { setSearchQuery(''); setTypeFilter('All'); setStatusFilter('All'); setCurrentPage(1); }} className="text-xs font-bold text-[#0B1F5B] hover:underline focus:outline-none ml-2">Reset Filters</button>
+
+          <div className="flex flex-col items-start w-full">
+            <label className="text-[10px] uppercase font-black text-slate-400 mb-1.5">Sort Results</label>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-900 font-bold focus:border-[#0F478D]">
+              <option value="Latest">Sort by Latest</option>
+              <option value="Renewal">Sort by Renewal Date</option>
+              <option value="Premium">Sort by Premium</option>
+            </select>
+          </div>
         </div>
 
-        <button type="button" className="text-[#0B1F5B] border border-slate-200 hover:bg-slate-50 bg-white font-bold text-xs h-9 px-3 rounded-xl flex items-center gap-1.5 transition-colors focus:outline-none">
-          <Download className="w-3.5 h-3.5" /> <span>Export Data</span>
-        </button>
-      </div>
+        {/* BULK ACTIONS TOOLBAR */}
+        {selectedPolicyIds.length > 0 && (
+          <div className="bg-[#0B1F5B] text-white p-3.5 rounded-2xl flex items-center justify-between shadow-md text-xs font-bold animate-slide-up select-none">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>{selectedPolicyIds.length} Policies Selected</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={handleBulkExport} className="h-8 px-3 border border-blue-900/60 bg-blue-900/40 rounded-lg hover:bg-blue-800/40 transition-colors flex items-center gap-1"><FileSpreadsheet className="w-3.5 h-3.5" /><span>Export Policies</span></button>
+              <button onClick={handleBulkRemind} className="h-8 px-3 bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-colors flex items-center gap-1"><Send className="w-3.5 h-3.5 text-emerald-400" /><span>Send Renewal Reminders</span></button>
+            </div>
+          </div>
+        )}
 
-      {/* CENTRAL RECORDS TABLE WORKSPACE */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative z-10 mx-6 mt-6">
-        <div className="w-full overflow-x-auto">
-          <table className="w-full min-w-[950px] text-xs font-medium text-slate-600 border-collapse table-fixed">
-            <colgroup>
-              <col className="w-[15%]" />
-              <col className="w-[15%]" />
-              <col className="w-[22%]" />
-              <col className="w-[14%]" />
-              <col className="w-[11%]" />
-              <col className="w-[11%]" />
-              <col className="w-[12%]" />
-              <col className="w-[5%]" />
-            </colgroup>
-            <thead>
-              <tr className="border-b border-slate-200 text-slate-400 text-left font-black uppercase tracking-wider text-[10px] bg-slate-50/40">
-                <th className="pb-3 pt-2 pl-3">Policy Number</th>
-                <th className="pb-3 pt-2">Customer</th>
-                <th className="pb-3 pt-2">Plan Architecture</th>
-                <th className="pb-3 pt-2">Sum Assured</th>
-                <th className="pb-3 pt-2">Premium</th>
-                <th className="pb-3 pt-2">Renewal Due</th>
-                <th className="pb-3 pt-2">Status</th>
-                <th className="pb-3 pt-2 text-right pr-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-sans">
-              {paginatedRecords.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50/30 transition-colors group">
-                  <td className="py-4 pl-3 font-bold text-[#0B1F5B] tracking-tight truncate">{row.id}</td>
-                  <td className="py-4 truncate">
-                    <div className="flex items-center gap-2.5">
-                      <div className={`w-6 h-6 rounded-lg ${row.color} font-black text-[9px] flex items-center justify-center shadow-3xs shrink-0 select-none`}>{row.initials}</div>
-                      <span className="font-bold text-black truncate">{row.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 truncate">
-                    <span className="font-bold text-slate-900 block leading-tight truncate">{row.plan}</span>
-                    <span className="text-[9px] font-black tracking-wider text-slate-400 block mt-0.5 uppercase">{row.type} Plan</span>
-                  </td>
-                  <td className="py-4 font-black text-black truncate">₹{row.sumAssured.toLocaleString()}</td>
-                  <td className="py-4 font-black text-[#0B1F5B] truncate">₹{row.premium.toLocaleString()}</td>
-                  <td className="py-4 font-bold text-slate-600 truncate">{row.renewal}</td>
-                  <td className="py-4">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 select-none ${row.badgeClass}`}>
-                      <span className="w-1 h-1 rounded-full bg-current"></span>
-                      {row.status}
-                    </span>
-                  </td>
-                  <td className="py-4 text-right pr-3 relative">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button type="button" onClick={() => setActiveMenu(activeMenu === row.id ? null : row.id)} className="p-1 text-slate-400 hover:text-black hover:bg-slate-100 rounded-lg transition-all"><MoreVertical className="w-3.5 h-3.5" /></button>
-                    </div>
-                    {activeMenu === row.id && (
-                      <div className="absolute right-3 mt-1 w-40 bg-white border border-slate-200 rounded-xl shadow-xl z-30 py-1.5 text-left text-xs font-semibold text-slate-700">
-                        <button type="button" onClick={() => setActiveMenu(null)} className="w-full px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-[#0A2540] font-bold">
-                          <Eye className="w-3.5 h-3.5 text-slate-400" /> <span>View Details</span>
-                        </button>
-                      </div>
-                    )}
-                  </td>
+        {/* DATA TABLE (MVP SCROLL CONTAINER - COHESIVE COLUMNS) */}
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-3xs overflow-hidden w-full max-w-full">
+          <div className="w-full">
+            <table className="w-full text-left border-collapse text-xs font-semibold text-slate-600 table-fixed">
+              <colgroup>
+                <col className="w-[5%]" />
+                <col className="w-[18%]" />
+                <col className="w-[22%]" />
+                <col className="w-[15%]" />
+                <col className="w-[15%]" />
+                <col className="w-[12%]" />
+                <col className="w-[8%]" />
+                <col className="w-[5%]" />
+              </colgroup>
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 uppercase text-[9px] tracking-wider text-slate-400 select-none">
+                  <th className="py-3 px-3 text-center">
+                    <button onClick={toggleSelectAll} className="p-1 text-slate-400 hover:text-slate-900">
+                      {selectedPolicyIds.length === filteredPolicies.length && filteredPolicies.length > 0 ? (
+                        <CheckSquare className="w-4 h-4 text-[#0B1F5B]" />
+                      ) : (
+                        <Square className="w-4 h-4" />
+                      )}
+                    </button>
+                  </th>
+                  <th className="py-3 px-3">Policy Number</th>
+                  <th className="py-3 px-3">Customer Name</th>
+                  <th className="py-3 px-3">Policy Type</th>
+                  <th className="py-3 px-3 text-right">Sum Assured</th>
+                  <th className="py-3 px-3 text-right">Premium</th>
+                  <th className="py-3 px-3">Policy Status</th>
+                  <th className="py-3 px-3 text-center">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100 bg-white text-slate-700">
+                {loading ? (
+                  <tr><td colSpan="8" className="p-12 text-center"><RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#0B1F5B]" /></td></tr>
+                ) : filteredPolicies.length === 0 ? (
+                  <tr><td colSpan="8" className="p-16 text-center text-slate-400 font-bold bg-slate-50/30">No active policies found in registry logs.</td></tr>
+                ) : (
+                  filteredPolicies.map((row) => {
+                    const isSelected = selectedPolicyIds.includes(row._id);
+                    return (
+                      <tr key={row._id} className={`hover:bg-slate-50/40 transition-colors ${isSelected ? 'bg-blue-50/5' : ''}`}>
+                        <td className="py-4 px-3 text-center">
+                          <button onClick={() => toggleSelectPolicy(row._id)} className="p-1 text-slate-400 hover:text-slate-900">
+                            {isSelected ? (
+                              <CheckSquare className="w-4 h-4 text-[#0B1F5B]" />
+                            ) : (
+                              <Square className="w-4 h-4" />
+                            )}
+                          </button>
+                        </td>
+                        <td className="py-4 px-3 font-mono font-bold text-[#0B1F5B] truncate">{row.policyNumber}</td>
+                        <td className="py-4 px-3">
+                          <div className="flex items-center gap-2 truncate">
+                            <div className="w-6 h-6 rounded-lg bg-indigo-950 text-white font-black text-[9px] flex items-center justify-center shrink-0 select-none shadow-3xs">
+                              {getDynamicInitials(row.customerName)}
+                            </div>
+                            <span className="font-extrabold text-slate-950 truncate">{row.customerName}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-3 text-slate-500 truncate">{row.planType} Plan</td>
+                        <td className="py-4 px-3 text-right font-bold text-slate-900 truncate">₹{(row.sumAssured || 0).toLocaleString('en-IN')}</td>
+                        <td className="py-4 px-3 text-right font-black text-[#0B1F5B] truncate">₹{(row.totalAnnualPremium || 0).toLocaleString('en-IN')}</td>
+                        <td className="py-4 px-3">
+                          <span className={`px-2 py-0.5 border text-[9px] font-black uppercase tracking-wider rounded-md ${getStatusBadge(row.policyStatus)}`}>
+                            {row.policyStatus}
+                          </span>
+                        </td>
+                        <td className="py-4 px-3 text-center relative">
+                          <button 
+                            type="button" 
+                            onClick={() => setActiveMenuId(activeMenuId === row._id ? null : row._id)} 
+                            className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-black transition-all cursor-pointer"
+                          >
+                            <MoreVertical className="w-3.5 h-3.5" />
+                          </button>
+                          
+                          {activeMenuId === row._id && (
+                            <div className="absolute right-4 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-30 py-1.5 text-left text-xs font-bold text-slate-700">
+                              <button 
+                                onClick={() => { navigate(`/policies/${row.policyNumber}`); setActiveMenuId(null); }}
+                                className="w-full px-3 py-2 hover:bg-slate-50 flex items-center gap-2"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-slate-400" /> <span>Inspect Details</span>
+                              </button>
+                              
+                              <button 
+                                onClick={() => triggerDownloadPDF(row.policyNumber)}
+                                className="w-full px-3 py-2 hover:bg-slate-50 flex items-center gap-2"
+                              >
+                                <Download className="w-3.5 h-3.5 text-slate-400" /> <span>Download Policy PDF</span>
+                              </button>
+
+                              <button 
+                                onClick={() => triggerReminder(row.customerName)}
+                                className="w-full px-3 py-2 hover:bg-slate-50 flex items-center gap-2"
+                              >
+                                <Send className="w-3.5 h-3.5 text-slate-400" /> <span>Send Reminder</span>
+                              </button>
+
+                              <button 
+                                onClick={() => {
+                                  alert("Navigating to Customer Dashboard Portal view...");
+                                  navigate(`/customer-dashboard/${row._id}`);
+                                }}
+                                className="w-full px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-teal-650"
+                              >
+                                <User className="w-3.5 h-3.5" /> <span>Customer Dashboard</span>
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* PAGINATION PANEL FOOTER */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-100 pt-4 mt-2 text-xs font-semibold text-slate-400 select-none">
-          <span>Showing {((verifiedCurrentPage - 1) * recordsPerPage) + 1}–{Math.min(filteredRecords.length, verifiedCurrentPage * recordsPerPage)} of {filteredRecords.length} Policies</span>
-          <div className="flex items-center gap-1 text-slate-600">
-            <button type="button" onClick={() => setCurrentPage(pageNum => Math.max(1, pageNum - 1))} className="h-8 px-2 border border-slate-200 bg-white hover:bg-slate-50 font-bold">&lt;</button>
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button key={i} type="button" onClick={() => setCurrentPage(i + 1)} className={`h-8 w-8 rounded-lg font-black flex items-center justify-center ${verifiedCurrentPage === i + 1 ? 'bg-[#0B1F5B] text-white shadow-md' : 'border border-slate-200 bg-white hover:bg-slate-50'}`}>{i + 1}</button>
-            ))}
-            <button type="button" onClick={() => setCurrentPage(pageNum => Math.min(totalPages, pageNum + 1))} className="h-8 px-2 border border-slate-200 bg-white hover:bg-slate-50 font-bold">&gt;</button>
-          </div>
-        </div>
-      </div>
-
-      {/* METRIC GRAPHS ANALYTICS FOOTER SPLIT */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full select-none items-start px-6 mt-6">
-        <div className="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col h-[340px] justify-between">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-            <h4 className="text-sm font-bold text-[#031B33] tracking-tight">Monthly Premium Collection</h4>
-            <span className="text-xs bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg font-bold text-slate-700">{timeframe}</span>
-          </div>
-          <div className="w-full h-48 flex items-end gap-4 px-2 pb-2 border-b border-slate-200">
-            {barChartMetrics.map((bar, idx) => (
-              <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end px-2 max-w-[65px]">
-                <div className="w-full rounded-t-md bg-[#3B82F6]" style={{ height: bar.heightPercent }}></div>
-                <span className="text-[11px] font-bold text-slate-400 tracking-tight mt-2 shrink-0">{bar.month}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col h-[340px] justify-between">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-2">
-            <h4 className="text-sm font-bold text-[#031B33] tracking-tight">Policy Distribution</h4>
-            <button type="button" className="p-1 hover:bg-slate-50 border border-slate-100 rounded-lg transition-colors focus:outline-none"><MoreVertical className="w-4 h-4 text-slate-400" /></button>
-          </div>
-          <div className="flex items-center justify-center gap-8 py-4 px-2 my-auto w-full">
-            <div className="relative w-32 h-32 rounded-full border-[14px] border-[#0252D7] flex flex-col items-center justify-center shrink-0">
-              <div className="absolute inset-0 rounded-full border-[14px] border-[#031B33] rotate-45 pointer-events-none"></div>
-              <div className="absolute inset-0 rounded-full border-[14px] border-[#D1E2FF] -rotate-90 pointer-events-none"></div>
-              <span className="text-sm font-black text-slate-900 tracking-tight leading-none">12.4k</span>
-              <span className="text-[9px] font-black text-slate-400 mt-0.5 uppercase tracking-wider">Total</span>
+        {/* METRIC GRAPHS ANALYTICS */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full select-none items-start">
+          
+          {/* Monthly collections */}
+          <div className="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col h-[340px] justify-between text-left">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <h4 className="text-xs font-black uppercase text-[#031B33] tracking-wider">Premium Collections Trend</h4>
+              <span className="text-[10px] bg-slate-50 border border-slate-200 px-2 py-0.5 rounded font-black text-slate-500 uppercase">Last 6 Months</span>
             </div>
-            <div className="space-y-3 flex-1 text-xs font-bold text-slate-700">
-              {distributionMetrics.map((metric, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-3 h-3 rounded block shrink-0 ${metric.color}`}></span>
-                    <span className="text-slate-500 font-semibold">{metric.label}</span>
-                  </div>
-                  <span className="text-slate-900 font-black text-right min-w-[35px]">{metric.percentage}</span>
+            <div className="w-full h-48 flex items-end gap-4 px-2 pb-2 border-b border-slate-100">
+              {barChartMetrics.map((bar, idx) => (
+                <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end px-2 max-w-[65px] group">
+                  <div 
+                    className="w-full rounded-t bg-[#0B1F5B] hover:bg-blue-600 cursor-pointer transition-all duration-300" 
+                    style={{ height: bar.heightPercent }}
+                    title={`Premium Collected: ₹${bar.val.toLocaleString('en-IN')}`}
+                  ></div>
+                  <span className="text-[9px] font-black text-slate-400 tracking-tight mt-2 shrink-0 uppercase">{bar.month}</span>
                 </div>
               ))}
             </div>
           </div>
-          <div className="border-t border-slate-100 pt-3 text-[10px] font-extrabold text-slate-400 text-center uppercase tracking-widest">Portfolio Summary Distribution Weights</div>
-        </div>
-      </div>
 
-      {/* ==========================================================================
-         7. FULL MULTI-STEP ONBOARDING WIZARD INTERFACE (MODAL CONTINUATION WINDOW)
-         ========================================================================== */}
-      {isWizardOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-3xs flex items-center justify-center z-50 p-4 font-sans select-none antialiased">
-          <div className="bg-white border border-slate-200 w-full max-w-[850px] h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-700 text-xs font-semibold">
+          {/* Policy plan type distribution */}
+          <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col h-[340px] justify-between text-left">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-2">
+              <h4 className="text-xs font-black uppercase text-[#031B33] tracking-wider">Plan Portfolio Weight</h4>
+              <button type="button" className="p-1 hover:bg-slate-50 border border-slate-100 rounded-lg transition-colors focus:outline-none"><MoreVertical className="w-4 h-4 text-slate-400" /></button>
+            </div>
             
-            {/* MODAL TITLE TOP BAR DESK */}
-            <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-[#0B1F5B] flex items-center justify-center text-white font-black text-sm">N</div>
-                <div>
-                  <h3 className="text-sm font-black text-[#0B1F5B] uppercase tracking-tight leading-none">New Application</h3>
-                  <span className="text-[10px] text-slate-400 font-bold block mt-1 uppercase tracking-wider">Step {wizardStep} of 5</span>
-                </div>
+            <div className="flex items-center justify-center gap-8 py-4 px-2 my-auto w-full">
+              <div className="relative w-32 h-32 rounded-full border-[14px] border-[#0252D7] flex flex-col items-center justify-center shrink-0">
+                <div className="absolute inset-0 rounded-full border-[14px] border-[#031B33] rotate-45 pointer-events-none"></div>
+                <div className="absolute inset-0 rounded-full border-[14px] border-[#D1E2FF] -rotate-90 pointer-events-none"></div>
+                <span className="text-base font-black text-slate-950 tracking-tight leading-none">
+                  {policies.length}
+                </span>
+                <span className="text-[9px] font-black text-slate-400 mt-0.5 uppercase tracking-wider">Total</span>
               </div>
-              <button 
-                type="button" 
-                onClick={() => setIsWizardOpen(false)}
-                className="text-slate-400 hover:text-black font-black text-sm p-1 hover:bg-slate-200/50 rounded-lg"
-              >
-                ✕
-              </button>
+              <div className="space-y-3 flex-1 text-xs font-bold text-slate-700">
+                {distributionMetrics.map((metric, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-3 h-3 rounded block shrink-0 ${metric.color}`}></span>
+                      <span className="text-slate-500 font-semibold">{metric.label}</span>
+                    </div>
+                    <span className="text-slate-950 font-black text-right min-w-[35px]">{metric.percentage}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            {/* PROGRESS INDICATOR BAR SLAT */}
-            <div className="w-full bg-slate-100 h-1.5 shrink-0 relative">
-              <div 
-                className="bg-[#0B1F5B] h-full transition-all duration-300"
-                style={{ width: `${(wizardStep / 5) * 100}%` }}
-              ></div>
-            </div>
-
-            {/* CENTRAL WORKSPACE ACCORDION HUB SCROLL CONTAINER */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 text-left">
-              
-              {/* STEP 1: SELECT LEAD */}
-              {wizardStep === 1 && (
-                <div className="space-y-4">
-                  <div className="border-b border-slate-100 pb-2">
-                    <h4 className="text-slate-900 font-extrabold text-sm tracking-tight">Step 1: Select Lead Target</h4>
-                    <p className="text-[11px] text-slate-400">Choose a qualified entry context module from the database network logs.</p>
-                  </div>
-                  <div className="grid grid-cols-1 gap-3.5">
-                    <div 
-                      onClick={() => setPolicyForm({...policyForm, selectedLeadId: 'Sarah Mitchell'})}
-                      className={`p-4 border rounded-xl cursor-pointer flex justify-between items-center transition-all ${policyForm.selectedLeadId === 'Sarah Mitchell' ? 'border-[#0B1F5B] bg-blue-50/10' : 'border-slate-200 hover:bg-slate-50'}`}
-                    >
-                      <div>
-                        <h5 className="font-extrabold text-slate-900 text-xs">Sarah Mitchell</h5>
-                        <p className="text-[11px] text-slate-400 font-medium mt-0.5">s.mitchell@enterprise.com | +1 (555) 234-8890</p>
-                      </div>
-                      <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">92% Match Profile</span>
-                    </div>
-
-                    <div 
-                      onClick={() => setPolicyForm({...policyForm, selectedLeadId: 'James Arrington'})}
-                      className={`p-4 border rounded-xl cursor-pointer flex justify-between items-center transition-all ${policyForm.selectedLeadId === 'James Arrington' ? 'border-[#0B1F5B] bg-blue-50/10' : 'border-slate-200 hover:bg-slate-50'}`}
-                    >
-                      <div>
-                        <h5 className="font-extrabold text-slate-900 text-xs">James Arrington</h5>
-                        <p className="text-[11px] text-slate-400 font-medium mt-0.5">james.a@global.net | +1 (555) 902-1143</p>
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">New Lead</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 2: PLAN SELECTION */}
-              {wizardStep === 2 && (
-                <div className="space-y-4">
-                  <div className="border-b border-slate-100 pb-2">
-                    <h4 className="text-slate-900 font-extrabold text-sm tracking-tight">Step 2: Plan Selection Matrix</h4>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {['Term Life', 'Whole Life', 'ULIP'].map((plan) => (
-                      <div 
-                        key={plan}
-                        onClick={() => setPolicyForm({...policyForm, planType: plan})}
-                        className={`p-4 border rounded-xl cursor-pointer transition-all flex flex-col justify-between h-28 ${policyForm.planType === plan ? 'border-[#0B1F5B] bg-blue-50/20' : 'border-slate-200 hover:bg-slate-50'}`}
-                      >
-                        <h5 className="font-extrabold text-slate-900">{plan} Variant</h5>
-                        <span className="text-[11px] text-slate-400 font-medium leading-tight">Tailored structural actuarial option model.</span>
-                        <span className="text-[10px] font-black text-[#0B1F5B] mt-2 block">Starting at $45/mo</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-slate-400 font-bold block uppercase text-[10px]">Sum Assured Pref ($)</label>
-                      <input type="number" value={policyForm.sumAssured} onChange={(e) => setPolicyForm({...policyForm, sumAssured: e.target.value})} className="w-full h-9 bg-white border border-slate-200 rounded-lg px-3 font-bold text-black outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-slate-400 font-bold block uppercase text-[10px]">Payment Frequency</label>
-                      <select value={policyForm.paymentFrequency} onChange={(e) => setPolicyForm({...policyForm, paymentFrequency: e.target.value})} className="w-full h-9 bg-white border border-slate-200 rounded-lg px-3 font-bold text-black outline-none cursor-pointer">
-                        <option>Annual</option>
-                        <option>Monthly</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 3: CLIENT DETAILS INFORMATION INTAKE */}
-              {wizardStep === 3 && (
-                <div className="space-y-4">
-                  <div className="border-b border-slate-100 pb-2">
-                    <h4 className="text-slate-900 font-extrabold text-sm tracking-tight">Step 3: Client Details Intake</h4>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-slate-400 font-bold block uppercase text-[10px]">Legal Full Name</label>
-                      <input type="text" value={policyForm.fullName} onChange={(e) => setPolicyForm({...policyForm, fullName: e.target.value})} className="w-full h-9 bg-slate-50 border border-slate-200 rounded-lg px-3 font-bold text-black outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-slate-400 font-bold block uppercase text-[10px]">Date of Birth</label>
-                      <input type="date" value={policyForm.dob} onChange={(e) => setPolicyForm({...policyForm, dob: e.target.value})} className="w-full h-9 bg-slate-50 border border-slate-200 rounded-lg px-3 font-bold text-black outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-slate-400 font-bold block uppercase text-[10px]">Primary Occupation</label>
-                      <input type="text" value={policyForm.occupation} onChange={(e) => setPolicyForm({...policyForm, occupation: e.target.value})} className="w-full h-9 bg-slate-50 border border-slate-200 rounded-lg px-3 font-bold text-black outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-slate-400 font-bold block uppercase text-[10px]">Annual Income ($)</label>
-                      <input type="number" value={policyForm.annualIncome} onChange={(e) => setPolicyForm({...policyForm, annualIncome: e.target.value})} className="w-full h-9 bg-slate-50 border border-slate-200 rounded-lg px-3 font-bold text-black outline-none" />
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-blue-50/30 border border-blue-100 rounded-xl space-y-3">
-                    <span className="text-[10px] font-black uppercase text-[#0B1F5B] block">Nominee Disclosure Beneficiary</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <input type="text" value={policyForm.nomineeName} onChange={(e) => setPolicyForm({...policyForm, nomineeName: e.target.value})} className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-black" placeholder="Name" />
-                      <select value={policyForm.nomineeRelation} onChange={(e) => setPolicyForm({...policyForm, nomineeRelation: e.target.value})} className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-black"><option>Spouse</option><option>Child</option></select>
-                      <input type="number" value={policyForm.nomineeShare} onChange={(e) => setPolicyForm({...policyForm, nomineeShare: e.target.value})} className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-black" placeholder="Share %" />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 4: KYC & DOCUMENTS VERIFICATION DESK */}
-              {wizardStep === 4 && (
-                <div className="space-y-4">
-                  <div className="border-b border-slate-100 pb-2">
-                    <h4 className="text-slate-900 font-extrabold text-sm tracking-tight">Step 4: KYC Document Upload Matrix</h4>
-                  </div>
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="p-4 border border-slate-200 bg-slate-50/50 rounded-xl flex items-center justify-between">
-                      <div>
-                        <h5 className="font-extrabold text-slate-900">Identity Proof File Scan</h5>
-                        <p className="text-[11px] text-slate-400 font-medium">Passport_Scan_JohnDoe.pdf (2.4 MB) Uploaded successfully.</p>
-                      </div>
-                      <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">Verified</span>
-                    </div>
-
-                    <div className="p-4 border border-slate-200 bg-slate-50/50 rounded-xl flex items-center justify-between">
-                      <div>
-                        <h5 className="font-extrabold text-slate-900">Address Proof Document</h5>
-                        <p className="text-[11px] text-slate-400 font-medium">Utility bill, bank statement logs, or statement file requirements.</p>
-                      </div>
-                      <button type="button" className="h-7 px-3 bg-white border border-slate-200 rounded-lg font-bold text-slate-700 hover:bg-slate-100 flex items-center gap-1">
-                        <Upload className="w-3 h-3" /> <span>Upload file</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 5: REVIEW APPLICATION SUBMISSION OVERVIEW */}
-              {wizardStep === 5 && (
-                <div className="space-y-4">
-                  <div className="border-b border-slate-100 pb-2">
-                    <h4 className="text-slate-900 font-extrabold text-sm tracking-tight">Step 5: Final Verification Review</h4>
-                  </div>
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 font-medium text-xs">
-                    <div><span className="text-slate-400 block text-[10px] font-black uppercase tracking-wider">Primary Applicant Holder Name Tag:</span> <span className="text-black font-extrabold">{policyForm.fullName}</span></div>
-                    <div><span className="text-slate-400 block text-[10px] font-black uppercase tracking-wider">Assigned Scheme Product Blueprint:</span> <span className="text-[#0B1F5B] font-black">{policyForm.planType} Package Framework</span></div>
-                    <div><span className="text-slate-400 block text-[10px] font-black uppercase tracking-wider">Target Benefit sum Coverage ($):</span> <span className="text-slate-900 font-extrabold">${parseInt(policyForm.sumAssured).toLocaleString()}</span></div>
-                  </div>
-
-                  <div className="p-3 bg-emerald-50/50 border border-emerald-100 text-emerald-800 rounded-xl flex items-start gap-2 text-[11px]">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>Underwriting automated evaluation scoring engine mapping logs cleared. Application forms ready to commit to final deployment indexes.</span>
-                  </div>
-                </div>
-              )}
-
-            </div>
-
-            {/* MODAL FOOTER SLAT BAR NAVIGATION INTERACTION ACTION LINK CONTROLLERS */}
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0 select-none">
-              <button 
-                type="button"
-                onClick={() => setWizardStep(prev => Math.max(1, prev - 1))}
-                disabled={wizardStep === 1}
-                className="h-9 px-4 border border-slate-200 bg-white rounded-xl font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 flex items-center gap-1"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" /> <span>Previous Step</span>
-              </button>
-
-              {wizardStep === 5 ? (
-                <button 
-                  type="button"
-                  onClick={handleFinalizeSubmission}
-                  className="h-9 px-5 bg-emerald-700 hover:bg-black text-white font-black rounded-xl flex items-center gap-1 shadow transition-all"
-                >
-                  <span>Issue New Policy</span>
-                  <Check className="w-4 h-4" />
-                </button>
-              ) : (
-                <button 
-                  type="button"
-                  onClick={() => setWizardStep(prev => Math.min(5, prev + 1))}
-                  className="h-9 px-5 bg-[#0B1F5B] hover:bg-black text-white font-black rounded-xl flex items-center gap-1 shadow transition-all"
-                >
-                  <span>Next Step</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-
+            
+            <div className="border-t border-slate-100 pt-3 text-[10px] font-black text-slate-400 text-center uppercase tracking-widest">Portfolio Summary Distribution Weights</div>
           </div>
+
         </div>
-      )}
+
+      </main>
 
     </div>
   );

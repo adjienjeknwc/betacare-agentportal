@@ -64,8 +64,7 @@ h1, h2, h3, h4, h5, h6,
 [class*="text-slate-900"],
 [class*="text-slate-800"],
 [class*="text-[#0B1F5B]"],
-.light-theme-mode h1, .light-theme-mode h2, .light-theme-mode h3, .light-theme-mode h4,
-.dark-theme-mode h1, .dark-theme-mode h2, .dark-theme-mode h3, .dark-theme-mode h4 {
+.light-theme-mode h1, .light-theme-mode h2, .light-theme-mode h3, .light-theme-mode h4 {
   font-family: var(--heading) !important;
   color: #000000 !important; /* Absolute deep solid black render path */
 }
@@ -130,48 +129,103 @@ code {
   color: var(--text);
 }
 
-/* 7. PRESERVE THEMATIC DESKTOP BACKGROUND HOOKS */
-.dark-theme-mode .min-h-screen,
-.dark-theme-mode main {
-  background-color: var(--bg-main) !important;
+/* 7. NATIVE DARK THEME IMPLEMENTATION SHEET */
+html.dark-theme-mode {
+  color-scheme: dark;
 }
 
-.dark-theme-mode .bg-white,
-.dark-theme-mode .bg-white\/50 {
+html.dark-theme-mode body,
+html.dark-theme-mode .bg-\[\#F5F7FB\],
+html.dark-theme-mode .bg-\[\#F8FAFC\],
+html.dark-theme-mode .bg-slate-50\/50,
+html.dark-theme-mode .bg-slate-50,
+html.dark-theme-mode .min-h-screen {
+  background-color: var(--bg-main) !important;
+  color: var(--text-main) !important;
+}
+
+html.dark-theme-mode .bg-white,
+html.dark-theme-mode .bg-white\/50,
+html.dark-theme-mode .bg-white\/80 {
   background-color: var(--bg-card) !important;
   border-color: var(--border-color) !important;
 }
 
-.dark-theme-mode p,
-.dark-theme-mode span,
-.dark-theme-mode .text-slate-500,
-.dark-theme-mode .text-slate-400 {
+html.dark-theme-mode h1,
+html.dark-theme-mode h2,
+html.dark-theme-mode h3,
+html.dark-theme-mode h4,
+html.dark-theme-mode h5,
+html.dark-theme-mode h6,
+html.dark-theme-mode .text-slate-900,
+html.dark-theme-mode .text-slate-800,
+html.dark-theme-mode .text-\[\#0B1F5B\],
+html.dark-theme-mode .text-\[\#0B1E46\] {
+  color: #ffffff !important;
+}
+
+html.dark-theme-mode p,
+html.dark-theme-mode span,
+html.dark-theme-mode label,
+html.dark-theme-mode .text-slate-700,
+html.dark-theme-mode .text-slate-600,
+html.dark-theme-mode .text-slate-500,
+html.dark-theme-mode .text-slate-400 {
   color: var(--text-muted) !important;
 }
 
-.dark-theme-mode input,
-.dark-theme-mode select,
-.dark-theme-mode textarea {
-  background-color: #0B132B !important;
+html.dark-theme-mode input,
+html.dark-theme-mode select,
+html.dark-theme-mode textarea {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+html.dark-theme-mode input::placeholder {
+  color: #64748b !important;
+}
+
+html.dark-theme-mode .border,
+html.dark-theme-mode .border-b,
+html.dark-theme-mode .border-t,
+html.dark-theme-mode .border-l,
+html.dark-theme-mode .border-r,
+html.dark-theme-mode .border-slate-100,
+html.dark-theme-mode .border-slate-200 {
   border-color: var(--border-color) !important;
-  color: var(--text-main) !important;
 }
 
-.dark-theme-mode .border,
-.dark-theme-mode .border-b,
-.dark-theme-mode .border-t {
-  border-color: var(--border-color) !important;
-}
-/* src/index.css — Add directly below your heading colors section */
-
-/* Exception layout rule: Force sidebar specific text components to stay white */
-aside h1, aside h2, aside h3, aside h4,
-aside span, aside button,
-.bg-\[\#0B1E46\] h2, .bg-\[\#0B1E46\] span {
-  color: #FFFFFF !important; /* Lock branding typography to solid white */
+html.dark-theme-mode aside,
+html.dark-theme-mode .bg-\[\#0B1E46\] {
+  background-color: #080c14 !important;
+  border-right-color: var(--border-color) !important;
 }
 
-aside span.text-slate-400,
-.bg-\[\#0B1E46\] span.text-slate-400 {
-  color: #94A3B8 !important; /* Retain clean muted slate contrast for subtitles */
+html.dark-theme-mode aside span,
+html.dark-theme-mode aside button,
+html.dark-theme-mode aside p,
+html.dark-theme-mode aside h2,
+html.dark-theme-mode aside h3,
+html.dark-theme-mode aside h4,
+html.dark-theme-mode aside div {
+  color: #ffffff !important;
 }
+
+html.dark-theme-mode aside span.text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html.dark-theme-mode .shadow-sm,
+html.dark-theme-mode .shadow-md,
+html.dark-theme-mode .shadow-3xs {
+  box-shadow: none !important;
+}
+
+/* Translucent Glowing Dark Badges */
+html.dark-theme-mode .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1) !important; color: #34d399 !important; border-color: rgba(16, 185, 129, 0.2) !important; }
+html.dark-theme-mode .bg-amber-50 { background-color: rgba(245, 158, 11, 0.1) !important; color: #fbbf24 !important; border-color: rgba(245, 158, 11, 0.2) !important; }
+html.dark-theme-mode .bg-rose-50 { background-color: rgba(239, 68, 68, 0.1) !important; color: #f87171 !important; border-color: rgba(239, 68, 68, 0.2) !important; }
+html.dark-theme-mode .bg-blue-50 { background-color: rgba(59, 130, 246, 0.1) !important; color: #60a5fa !important; border-color: rgba(59, 130, 246, 0.2) !important; }
+html.dark-theme-mode .bg-purple-50 { background-color: rgba(139, 92, 246, 0.1) !important; color: #a78bfa !important; border-color: rgba(139, 92, 246, 0.2) !important; }
+html.dark-theme-mode .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.1) !important; color: #818cf8 !important; border-color: rgba(99, 102, 241, 0.2) !important; }

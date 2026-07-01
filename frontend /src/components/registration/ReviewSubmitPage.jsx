@@ -101,7 +101,7 @@ export default function ReviewSubmitPage() {
                   required 
                 />
                 <span className="text-[11px] text-slate-600 font-medium leading-relaxed select-none">
-                  I hereby declare that all information provided is accurate to the best of my knowledge. I agree to abide by the Agent Compliance Agreement and the Terms of Service of ABCD Life Insurance.
+                  I hereby declare that all information provided is accurate to the best of my knowledge. I agree to abide by the Agent Compliance Agreement and the Terms of Service of Betacare Life Insurance.
                 </span>
               </label>
             </div>

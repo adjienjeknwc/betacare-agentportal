@@ -238,7 +238,11 @@ export default function PolicyIssuanceCenter() {
             <button type="button" onClick={() => navigate('/dashboard')} className="w-full sm:w-auto h-11 px-5 border border-slate-200 text-slate-600 bg-white font-bold text-xs rounded-xl hover:bg-slate-50 focus:outline-none">
               Return to Dashboard
             </button>
-            <button type="button" onClick={() => navigate('/policies')} className="w-full sm:w-auto h-11 px-6 bg-[#0B1F5B] text-white font-black text-xs rounded-xl shadow-sm flex items-center justify-center gap-1.5 focus:outline-none">
+            <button type="button" onClick={() => navigate(`/customer-dashboard/${policyId || 'POL-2026-887654'}`)} className="w-full sm:w-auto h-11 px-5 bg-teal-600 hover:bg-teal-700 text-white font-black text-xs rounded-xl shadow-sm flex items-center justify-center gap-1.5 focus:outline-none cursor-pointer">
+              <User className="w-4 h-4 text-white" />
+              <span>Go to Customer Dashboard</span>
+            </button>
+            <button type="button" onClick={() => navigate('/policies')} className="w-full sm:w-auto h-11 px-6 bg-[#0B1F5B] text-white font-black text-xs rounded-xl shadow-sm flex items-center justify-center gap-1.5 focus:outline-none cursor-pointer">
               <LayoutDashboard className="w-4 h-4 text-emerald-400" />
               <span>View Policy Dashboard</span>
             </button>

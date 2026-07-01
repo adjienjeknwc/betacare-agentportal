@@ -1,6 +1,7 @@
 // src/pages/Settings.jsx
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { 
   User, Mail, Phone, MapPin, ShieldCheck, Key, ToggleLeft, ToggleRight, 
   Clock, CheckCircle, AlertTriangle, Monitor, Globe, MailCheck, Save, RefreshCw, Camera, X, Lock
@@ -9,18 +10,43 @@ import {
 export default function Settings() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const { currentAgent } = useAuth();
+
+  // 1. Fetch the active user name string dynamically
+  const currentAgentName = currentAgent 
+    ? `${currentAgent.firstName} ${currentAgent.lastName}` 
+    : (localStorage.getItem('agentName') || "Rohan Mehta");
+
+  // 2. Intelligently break down the name into components for input fields
+  const nameArray = currentAgentName.trim().split(/\s+/);
+  const firstName = nameArray[0] || "Authorized";
+  const lastName = nameArray.slice(1).join(' ') || "Advisor";
+
+  // 3. System slug alias generator (e.g., "Aditi Verma" -> "aditi.verma@betacarelife.com")
+  const emailVal = currentAgent?.emailAddress || localStorage.getItem('agent_email') || `${firstName.toLowerCase()}.${lastName.toLowerCase().replace(/\s+/g, '') || 'advisor'}@betacarelife.com`;
+  const systemSlug = emailVal;
+
+  // 4. Initials generator for the layout card badge
+  const getDynamicInitials = (nameString) => {
+    const words = nameString.trim().split(/\s+/);
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return words[0][0] ? words[0].slice(0, 2).toUpperCase() : "AA";
+  };
 
   // 1. INTERACTIVE PROFILE & FORM APP STATES
   const [profilePic, setProfilePic] = useState(null);
   const [isEditable, setIsEditable] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
+  // Dynamically bound states to the current logged-in agent properties
   const [personalInfo, setPersonalInfo] = useState({
-    firstName: 'Rohan',
-    lastName: 'Mehta',
-    email: 'rohan.mehta@abcdlife.com',
-    mobile: '+91 98765 43210',
-    address: 'Apt 402, Skyline Residency, Bandra West, Mumbai - 400050'
+    firstName: firstName,
+    lastName: lastName,
+    email: emailVal,
+    mobile: currentAgent?.mobile || '+91 98765 43210',
+    address: currentAgent?.currentAddress || 'Apt 402, Skyline Residency, Bandra West, Mumbai - 400050'
   });
 
   // 2. REAL-WORLD USABLE SECURITY OPTION STATES
@@ -30,7 +56,7 @@ export default function Settings() {
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
 
   // Theme & Region State
-  const [appearance, setAppearance] = useState('light');
+  const [appearance, setAppearance] = useState(localStorage.getItem('theme') || 'light');
   const [timezone, setTimezone] = useState('(GMT+05:30) Mumbai, Kolkata');
 
   // Interactive Notification Matrix State
@@ -44,6 +70,16 @@ export default function Settings() {
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleThemeChange = (theme) => {
+    setAppearance(theme);
+    localStorage.setItem('theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark-theme-mode');
+    } else {
+      document.documentElement.classList.remove('dark-theme-mode');
+    }
   };
 
   const handleToggleNotification = (row, channel) => {
@@ -77,8 +113,24 @@ export default function Settings() {
   };
 
   const handleSaveAll = () => {
+    const updatedName = `${personalInfo.firstName} ${personalInfo.lastName}`;
+    localStorage.setItem('agentName', updatedName);
+    localStorage.setItem('agent_email', personalInfo.email);
+
+    if (currentAgent) {
+      currentAgent.firstName = personalInfo.firstName;
+      currentAgent.lastName = personalInfo.lastName;
+      currentAgent.emailAddress = personalInfo.email;
+      localStorage.setItem('agent_profile', JSON.stringify(currentAgent));
+    }
+
     setIsEditable(false);
     showToast("Profile configuration system records updated successfully");
+
+    window.dispatchEvent(new Event('storage'));
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   return (
@@ -108,9 +160,9 @@ export default function Settings() {
             type="button"
             onClick={() => {
               setPersonalInfo({
-                firstName: 'Rohan',
-                lastName: 'Mehta',
-                email: 'rohan.mehta@abcdlife.com',
+                firstName: firstName,
+                lastName: lastName,
+                email: systemSlug,
                 mobile: '+91 98765 43210',
                 address: 'Apt 402, Skyline Residency, Bandra West, Mumbai - 400050'
               });
@@ -157,7 +209,7 @@ export default function Settings() {
               {profilePic ? (
                 <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <span>RM</span>
+                <span>{getDynamicInitials(currentAgentName)}</span>
               )}
               <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 rounded-2xl">
                 <Camera className="w-5 h-5 text-white" />
@@ -169,7 +221,7 @@ export default function Settings() {
             <div className="flex-1 min-w-0 space-y-2 w-full text-center sm:text-left">
               <div>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                  <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-none">Rohan Mehta</h2>
+                  <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-none">{currentAgentName}</h2>
                   <span className="text-[9px] font-black bg-blue-50 text-[#0F478D] border border-blue-100 px-2 py-0.5 rounded-md uppercase tracking-wider">Senior Advisor</span>
                 </div>
                 <span className="text-xs text-slate-400 font-semibold block mt-1">Senior Insurance Advisor — ID-47210</span>
@@ -178,7 +230,7 @@ export default function Settings() {
               <div className="grid grid-cols-2 gap-y-1.5 gap-x-4 pt-2 border-t border-slate-100 text-[11px] font-semibold text-slate-500 w-full text-left">
                 <div className="truncate"><span className="text-slate-400 font-medium">Branch:</span> <strong className="text-slate-700">Mumbai HQ</strong></div>
                 <div className="truncate"><span className="text-slate-400 font-medium">Joined:</span> <strong className="text-slate-700">Mar 2021</strong></div>
-                <div className="col-span-2 truncate"><span className="text-slate-400 font-medium">System Alias:</span> <strong className="text-slate-700">rohan.mehta@abcdlife.com</strong></div>
+                <div className="col-span-2 truncate"><span className="text-slate-400 font-medium">System Alias:</span> <strong className="text-slate-700">{systemSlug}</strong></div>
               </div>
             </div>
 
@@ -451,9 +503,22 @@ export default function Settings() {
               <Monitor className="w-4 h-4 text-slate-400" />
               <div><span>System Interface Theme</span><span className="text-[10px] text-slate-400 font-medium block">Toggle view style</span></div>
             </div>
-            <div className="flex border border-slate-200 rounded-xl p-0.5 bg-slate-50 font-bold text-[11px] text-slate-600">
-              <button type="button" onClick={() => { setAppearance('light'); showToast("Switched to Light interface index rendering"); }} className={`px-3 py-1 rounded-lg transition-all focus:outline-none ${appearance === 'light' ? 'bg-white border shadow-3xs text-slate-900 font-black' : 'hover:text-slate-900'}`}>Light</button>
-              <button type="button" onClick={() => { setAppearance('dark'); showToast("Switched to Dark UI preview presentation layer"); }} className={`px-3 py-1 rounded-lg transition-all focus:outline-none ${appearance === 'dark' ? 'bg-white border shadow-3xs text-slate-900 font-black' : 'hover:text-slate-900'}`}>Dark</button>
+            {/* UPDATED INTERACTIVE THEME TOGGLE ELEMENT PART ONLY */}
+            <div className="flex border border-slate-200 rounded-xl p-0.5 bg-slate-100/80 font-bold text-[11px] text-slate-600 items-center shadow-inner select-none">
+              <button 
+                type="button" 
+                onClick={() => { handleThemeChange('light'); showToast("Switched to Light interface mode"); }} 
+                className={`px-4 py-1.5 rounded-lg transition-all focus:outline-none cursor-pointer ${appearance === 'light' ? 'bg-white border border-slate-200 shadow-sm text-slate-900 font-black scale-[1.02]' : 'hover:text-slate-900 text-slate-500'}`}
+              >
+                Light
+              </button>
+              <button 
+                type="button" 
+                onClick={() => { handleThemeChange('dark'); showToast("Switched to Dark interface mode"); }} 
+                className={`px-4 py-1.5 rounded-lg transition-all focus:outline-none cursor-pointer ${appearance === 'dark' ? 'bg-white border border-slate-200 shadow-sm text-slate-900 font-black scale-[1.02]' : 'hover:text-slate-900 text-slate-500'}`}
+              >
+                Dark
+              </button>
             </div>
           </div>
 

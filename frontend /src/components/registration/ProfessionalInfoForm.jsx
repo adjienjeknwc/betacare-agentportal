@@ -79,7 +79,7 @@ export default function ProfessionalInfoForm() {
         </div>
 
         <div className="pt-4 border-t border-slate-100 flex justify-between text-[10px] text-slate-400 font-medium">
-          <span>© 2024 ABCD Life Insurance. All rights reserved.</span>
+          <span>© 2024 Betacare Life Insurance. All rights reserved.</span>
           <div className="gap-2 flex">
             <a href="#" className="underline">Privacy Policy</a>
             <a href="#" className="underline">Terms of Service</a>
