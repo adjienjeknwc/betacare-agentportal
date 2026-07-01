@@ -145,7 +145,7 @@ export default function Settings() {
       )}
 
       {/* 1. TOP NAVBAR HEADER */}
-      <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 sticky top-0 z-20 select-none">
+      <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 lg:sticky lg:top-0 lg:z-10 relative z-0 select-none">
         <div className="flex flex-col text-left">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">
             Dashboard / User Profile & Settings

@@ -275,7 +275,7 @@ export default function PoliciesDashboard() {
     <div className="flex-1 flex flex-col min-h-screen bg-[#F5F7FB] text-left font-sans antialiased pb-16 w-full relative">
       
       {/* Header Panel */}
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-40 w-full shadow-3xs">
+      <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 lg:sticky lg:top-0 lg:z-10 relative z-0 w-full shadow-3xs">
         <div className="flex flex-col items-start text-left">
           <h1 className="font-black text-[#0B1F5B] tracking-tight text-[22px] leading-tight">Active Policy Dashboard</h1>
           <span className="text-slate-400 font-bold block mt-1 uppercase tracking-wider text-[10px]">

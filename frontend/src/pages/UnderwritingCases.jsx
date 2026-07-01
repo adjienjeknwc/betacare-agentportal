@@ -150,7 +150,7 @@ export default function UnderwritingCases() {
   if (!viewingCaseId) {
     return (
       <div className="flex-1 min-h-screen bg-[#F5F7FB] text-left font-sans antialiased pb-12 w-full">
-        <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sticky top-0 z-40 w-full">
+        <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 lg:sticky lg:top-0 lg:z-10 relative z-0 w-full">
           <div className="flex flex-col items-start">
             <h1 className="font-black text-[#0B1F5B] tracking-tight text-[22px] leading-tight">Underwriting Cases Desk</h1>
             <span className="text-slate-400 font-bold block mt-1 uppercase tracking-wider text-[10px]">
@@ -304,7 +304,7 @@ export default function UnderwritingCases() {
   // --- WORKSPACE CASE VIEW DETAILS ---
   return (
     <div className="flex-1 min-h-screen bg-[#F5F7FB] text-left font-sans antialiased pb-16 w-full animate-fade-in">
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40 w-full">
+      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between lg:sticky lg:top-0 lg:z-10 relative z-0 w-full">
         <div className="flex items-center gap-4">
           <button type="button" onClick={closeCaseWorkspace} className="p-2 border border-slate-200 rounded-xl bg-white text-slate-500 hover:bg-slate-50 transition-colors">
             <ArrowLeft className="w-4 h-4" />

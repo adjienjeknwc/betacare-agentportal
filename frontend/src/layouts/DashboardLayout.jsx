@@ -11,7 +11,7 @@ export default function DashboardLayout() {
     <div className="flex min-h-screen w-full bg-[#F5F7FB] overflow-x-hidden">
       
       {/* SIDEBAR CONTAINER (Responsive Drawer on Mobile, Fixed Sidebar on Large Screens) */}
-      <aside className={`fixed left-0 top-0 h-screen w-[260px] bg-[#0B1E46] text-white z-40 select-none transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+      <aside className={`fixed left-0 top-0 h-screen w-[260px] bg-[#0B1E46] text-white z-50 select-none transition-transform duration-300 ease-in-out lg:translate-x-0 ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <Sidebar onClose={() => setIsMobileMenuOpen(false)} />
@@ -27,7 +27,7 @@ export default function DashboardLayout() {
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
           className="p-1.5 rounded-lg hover:bg-blue-900 focus:outline-none transition-colors"
         >
-          {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          <Menu className="w-5 h-5" />
         </button>
       </div>
 
@@ -35,7 +35,7 @@ export default function DashboardLayout() {
       {isMobileMenuOpen && (
         <div 
           onClick={() => setIsMobileMenuOpen(false)} 
-          className="lg:hidden fixed inset-0 bg-black/50 z-30 transition-opacity"
+          className="lg:hidden fixed inset-0 bg-black/50 z-40 transition-opacity"
         />
       )}
 
