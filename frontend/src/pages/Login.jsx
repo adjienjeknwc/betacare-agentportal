@@ -44,7 +44,15 @@ export default function Login() {
         body: JSON.stringify({ agentId, password })
       });
 
-      const data = await response.json();
+      let data = {};
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const textError = await response.text();
+        console.error("❌ Non-JSON response received from server:", textError);
+        throw new Error(`Server Error (${response.status}): Invalid server response. Please verify database connection.`);
+      }
 
       if (!response.ok || !data.success) {
         throw new Error(data.message || "Authentication credentials rejected by Atlas Database.");

@@ -1,3 +1,5 @@
+// api/index.js
+require('dotenv').config();
 const app = require('../backend/src/app');
 const connectDB = require('../backend/src/database/connection');
 
