@@ -21,10 +21,8 @@ export default function Login() {
   // Hydrate credentials from browser client layer memory strings if active tokens exist
   useEffect(() => {
     const savedAgentId = localStorage.getItem('remembered_agent_id');
-    const savedPassword = localStorage.getItem('remembered_password');
-    if (savedAgentId && savedPassword) {
+    if (savedAgentId) {
       setAgentId(savedAgentId);
-      setPassword(savedPassword);
       setRememberMe(true);
     }
   }, []);
@@ -67,7 +65,6 @@ export default function Login() {
       // Handle Device Persistent Remember Me Flag Values
       if (rememberMe) {
         localStorage.setItem('remembered_agent_id', agentId);
-        localStorage.setItem('remembered_password', password);
       } else {
         localStorage.removeItem('remembered_agent_id');
         localStorage.removeItem('remembered_password');
@@ -143,7 +140,13 @@ export default function Login() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Password</label>
-                <button type="button" className="text-[10px] font-black text-blue-600 hover:underline outline-none">Forgot Password?</button>
+                <button 
+                  type="button" 
+                  onClick={() => alert("Please contact the Betacare Life IT Support Desk (support@betacarelife.com) or your branch reporting manager to request a credential reset.")}
+                  className="text-[10px] font-black text-blue-600 hover:underline outline-none cursor-pointer"
+                >
+                  Forgot Password?
+                </button>
               </div>
               <div className="relative flex items-center">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />

@@ -52,11 +52,146 @@ export default function RegisterFlow() {
         triggerToast("Email Address is required on Step 1.");
         return false;
       }
+      // Email format check
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(registrationForm.emailAddress.trim())) {
+        triggerToast("Please enter a valid Email Address.");
+        return false;
+      }
       if (!registrationForm.mobileNumber.trim()) {
         triggerToast("Mobile Number is required on Step 1.");
         return false;
       }
+      // Mobile length check
+      const cleanMobile = registrationForm.mobileNumber.replace(/[\s+-]/g, '');
+      if (cleanMobile.length < 10) {
+        triggerToast("Mobile Number must be at least 10 digits.");
+        return false;
+      }
+      if (!registrationForm.dob) {
+        triggerToast("Date of Birth is required on Step 1.");
+        return false;
+      }
+      // Age limit check (>=18)
+      const birthDate = new Date(registrationForm.dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age < 18) {
+        triggerToast("Agent must be at least 18 years old to register.");
+        return false;
+      }
+      if (!registrationForm.currentAddress.trim()) {
+        triggerToast("Current Address is required on Step 1.");
+        return false;
+      }
+      if (!registrationForm.city.trim()) {
+        triggerToast("City is required on Step 1.");
+        return false;
+      }
+      if (!registrationForm.state.trim()) {
+        triggerToast("State is required on Step 1.");
+        return false;
+      }
+      if (!registrationForm.pincode.trim()) {
+        triggerToast("Pincode is required on Step 1.");
+        return false;
+      }
+      // Pincode format check
+      const pincodeRegex = /^\d{6}$/;
+      if (!pincodeRegex.test(registrationForm.pincode.trim())) {
+        triggerToast("Pincode must be exactly 6 digits.");
+        return false;
+      }
     }
+
+    if (currentStep === 2) {
+      if (!registrationForm.branchLocation.trim()) {
+        triggerToast("Branch Location is required on Step 2.");
+        return false;
+      }
+      if (!registrationForm.reportingManager.trim()) {
+        triggerToast("Reporting Manager is required on Step 2.");
+        return false;
+      }
+      if (!registrationForm.joiningDate) {
+        triggerToast("Joining Date is required on Step 2.");
+        return false;
+      }
+    }
+
+    if (currentStep === 3) {
+      if (!registrationForm.irdaiLicenseNumber.trim()) {
+        triggerToast("IRDAI License Number is required on Step 3.");
+        return false;
+      }
+      if (!registrationForm.panNumber.trim()) {
+        triggerToast("PAN Number is required on Step 3.");
+        return false;
+      }
+      // PAN pattern check (standard Indian format: 5 letters, 4 digits, 1 letter)
+      const panRegex = /^[A-Z]{5}\d{4}[A-Z]{1}$/i;
+      if (!panRegex.test(registrationForm.panNumber.trim())) {
+        triggerToast("Please enter a valid 10-character PAN (e.g. ABCDE1234F).");
+        return false;
+      }
+    }
+
+    if (currentStep === 4) {
+      if (!registrationForm.accountHolderName.trim()) {
+        triggerToast("Account Holder Name is required on Step 4.");
+        return false;
+      }
+      if (!registrationForm.bankName.trim()) {
+        triggerToast("Bank Name is required on Step 4.");
+        return false;
+      }
+      if (!registrationForm.accountNumber.trim()) {
+        triggerToast("Account Number is required on Step 4.");
+        return false;
+      }
+      if (registrationForm.accountNumber !== registrationForm.confirmAccountNumber) {
+        triggerToast("Bank Account Numbers do not match.");
+        return false;
+      }
+      if (!registrationForm.ifscCode.trim()) {
+        triggerToast("IFSC Code is required on Step 4.");
+        return false;
+      }
+      // IFSC regex check (standard Indian format: 4 letters, 0, 6 digits/letters)
+      const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/i;
+      if (!ifscRegex.test(registrationForm.ifscCode.trim())) {
+        triggerToast("Please enter a valid 11-character IFSC (e.g. SBIN0001234).");
+        return false;
+      }
+      if (!registrationForm.branchName.trim()) {
+        triggerToast("Branch Name is required on Step 4.");
+        return false;
+      }
+    }
+
+    if (currentStep === 5) {
+      if (!registrationForm.panCardDoc) {
+        triggerToast("Please upload PAN Card document.");
+        return false;
+      }
+      if (!registrationForm.aadhaarCardDoc) {
+        triggerToast("Please upload Aadhaar Card document.");
+        return false;
+      }
+      if (!registrationForm.photoDoc) {
+        triggerToast("Please upload Profile Photograph.");
+        return false;
+      }
+      if (!registrationForm.bankProofDoc) {
+        triggerToast("Please upload Bank Account Proof.");
+        return false;
+      }
+    }
+
     if (currentStep === 6) {
       if (!registrationForm.username.trim()) {
         triggerToast("Username is required on Step 6.");
@@ -66,8 +201,16 @@ export default function RegisterFlow() {
         triggerToast("Password is required on Step 6.");
         return false;
       }
+      if (registrationForm.password.length < 6) {
+        triggerToast("Password must be at least 6 characters long.");
+        return false;
+      }
       if (registrationForm.password !== registrationForm.confirmPassword) {
         triggerToast("Passwords do not match.");
+        return false;
+      }
+      if (!registrationForm.securityAnswer.trim()) {
+        triggerToast("Security Answer is required on Step 6.");
         return false;
       }
     }
@@ -76,9 +219,13 @@ export default function RegisterFlow() {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+    let finalValue = type === 'checkbox' ? checked : value;
+    if (name === 'panNumber' || name === 'ifscCode') {
+      finalValue = String(finalValue).toUpperCase();
+    }
     setRegistrationForm(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: finalValue
     }));
   };
 
