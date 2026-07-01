@@ -82,7 +82,7 @@ export default function LeadManagement() {
 
       {/* DATA DATA ROWS MAIN REGISTER */}
       <div className="bg-white border rounded-2xl shadow-xs overflow-hidden w-full">
-        <table className="w-full border-collapse text-left table-fixed">
+        <table className="hidden md:table w-full border-collapse text-left table-fixed">
           <thead>
             <tr className="bg-slate-50 border-b text-slate-400 font-black uppercase text-[11px]">
               <th className="p-4 w-[20%]">Lead Tracking ID</th>
@@ -118,6 +118,38 @@ export default function LeadManagement() {
             )}
           </tbody>
         </table>
+
+        {/* MOBILE STACKED CARDS VIEW */}
+        <div className="md:hidden divide-y divide-slate-100 bg-white">
+          {loading ? (
+            <div className="p-8 text-center"><RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#0B1F5B]" /></div>
+          ) : leads.length === 0 ? (
+            <div className="p-8 text-center text-slate-400 font-bold bg-slate-50/30">No leads found in this isolated account.</div>
+          ) : (
+            leads.map(lead => (
+              <div key={lead._id} className="p-4 space-y-2 hover:bg-slate-50/40 transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs text-blue-600 font-bold">#{lead._id.slice(-6).toUpperCase()}</span>
+                  <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded border uppercase ${
+                    lead.temperature === 'Hot' ? 'text-orange-600 bg-orange-50 border-orange-100' :
+                    lead.temperature === 'Warm' ? 'text-amber-600 bg-amber-50 border-amber-100' :
+                    'text-blue-500 bg-blue-50 border-blue-100'
+                  }`}>
+                    {lead.temperature || 'Warm'}
+                  </span>
+                </div>
+                <div>
+                  <h4 className="font-black text-sm text-slate-900">{lead.customerName}</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">{lead.productInterest}</p>
+                </div>
+                <div className="flex items-center justify-between pt-1 text-[11px]">
+                  <span className="text-slate-400 font-bold">Pipeline Status</span>
+                  <span className="bg-slate-100 border px-2 py-0.5 rounded text-[9px] uppercase font-bold text-slate-600">{lead.status}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

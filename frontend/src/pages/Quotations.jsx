@@ -417,7 +417,7 @@ export default function Quotations() {
 
         {/* DATA TABLE (FIT WORKSPACE - NO SCROLL) */}
         <div className="bg-white border border-slate-200 rounded-2xl shadow-3xs overflow-hidden w-full max-w-full">
-          <table className="w-full text-left border-collapse text-xs font-semibold text-slate-600 table-fixed">
+          <table className="hidden md:table w-full text-left border-collapse text-xs font-semibold text-slate-600 table-fixed">
             <colgroup>
               <col className="w-[5%]" />
               <col className="w-[18%]" />
@@ -537,6 +537,108 @@ export default function Quotations() {
               )}
             </tbody>
           </table>
+
+          {/* MOBILE CARDS VIEW */}
+          <div className="md:hidden divide-y divide-slate-100 bg-white">
+            {loading ? (
+              <div className="p-8 text-center"><RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#0B1F5B]" /></div>
+            ) : filteredQuotes.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 font-bold bg-slate-50/30">No quotations found matching the filters.</div>
+            ) : (
+              filteredQuotes.map((item) => {
+                const isSelected = selectedQuoteIds.includes(item._id);
+                return (
+                  <div key={item._id} className={`p-4 hover:bg-slate-50/40 transition-colors ${isSelected ? 'bg-blue-50/5' : ''} space-y-3`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => toggleSelectQuote(item._id)} className="p-1 text-slate-400 hover:text-slate-900">
+                          {isSelected ? (
+                            <CheckSquare className="w-4 h-4 text-[#0B1F5B]" />
+                          ) : (
+                            <Square className="w-4 h-4" />
+                          )}
+                        </button>
+                        <span className="font-mono font-bold text-xs text-[#0B1F5B]">{item.quoteId || 'QT-2026-N/A'}</span>
+                      </div>
+                      
+                      <div className="relative">
+                        <button 
+                          onClick={() => setActiveMenuId(activeMenuId === item._id ? null : item._id)} 
+                          className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                        
+                        {activeMenuId === item._id && (
+                          <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-xl z-30 py-1.5 text-left text-xs font-bold text-slate-700">
+                            <button 
+                              onClick={() => { navigate(`/lead-management/generate-quote/${item.leadId}`); setActiveMenuId(null); }}
+                              className="w-full px-3 py-2 hover:bg-slate-50 flex items-center gap-2"
+                            >
+                              <Calculator className="w-3.5 h-3.5 text-slate-400" /> <span>View Quote Form</span>
+                            </button>
+                            <button 
+                              onClick={() => handleDuplicateQuote(item)}
+                              className="w-full px-3 py-2 hover:bg-slate-50 flex items-center gap-2"
+                            >
+                              <Copy className="w-3.5 h-3.5 text-slate-400" /> <span>Duplicate Quote</span>
+                            </button>
+                            <button 
+                              onClick={() => handleShareQuote('email')}
+                              className="w-full px-3 py-2 hover:bg-slate-50 flex items-center gap-2"
+                            >
+                              <Send className="w-3.5 h-3.5 text-slate-400" /> <span>Share Quote</span>
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setSelectedQuoteDetail(item);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-indigo-700 font-extrabold"
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5" /> <span>Convert to Proposal</span>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteQuote(item._id)}
+                              className="w-full px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-rose-600"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> <span>Delete Quote</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                        {getDynamicInitials(item.customerName)}
+                      </div>
+                      <div className="text-left">
+                        <button 
+                          onClick={() => setSelectedQuoteDetail(item)}
+                          className="font-extrabold text-sm text-slate-950 text-left hover:underline block"
+                        >
+                          {item.customerName}
+                        </button>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">{item.policyType}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-2 text-[11px] font-bold text-slate-500 border-t border-slate-50">
+                      <div className="text-left">
+                        <span className="text-[9px] uppercase text-slate-400 block">Sum Assured</span>
+                        <span className="text-slate-900 font-bold">₹{(item.coverageAmount || 0).toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[9px] uppercase text-slate-400 block">Premium</span>
+                        <span className="text-[#0B1F5B] font-black">₹{(item.totalPayable || 0).toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
 
         {/* ANALYTICS SECTION */}

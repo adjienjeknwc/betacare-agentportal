@@ -170,9 +170,9 @@ export default function RegisterFlow() {
           <h1 className="font-black text-[#0B1F5B] tracking-tight text-xl">Agent Onboarding Workspace</h1>
           <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider mt-1">Configure compliance metadata logs to deploy a new profile</p>
         </div>
-        <div className="flex items-center gap-1 bg-slate-100 p-1 border rounded-xl text-[10px] font-black uppercase text-slate-400 shrink-0">
+        <div className="flex items-center gap-1 bg-slate-100 p-1 border rounded-xl text-[10px] font-black uppercase text-slate-400 overflow-x-auto max-w-full scrollbar-none whitespace-nowrap">
           {[1, 2, 3, 4, 5, 6, 7].map(step => (
-            <span key={step} className={`px-2.5 py-1 rounded-lg transition-all ${currentStep === step ? 'bg-[#0B1F5B] text-white shadow-3xs' : ''}`}>Step {step}</span>
+            <span key={step} className={`px-2.5 py-1 rounded-lg transition-all shrink-0 ${currentStep === step ? 'bg-[#0B1F5B] text-white shadow-3xs' : ''}`}>Step {step}</span>
           ))}
         </div>
       </header>
@@ -193,9 +193,15 @@ export default function RegisterFlow() {
                   <input type="text" name="middleName" value={registrationForm.middleName} onChange={handleInputChange} placeholder="Middle Name" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
                   <input type="text" name="lastName" value={registrationForm.lastName} onChange={handleInputChange} placeholder="Last Name *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <input type="date" name="dob" value={registrationForm.dob} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
-                  <select name="gender" value={registrationForm.gender} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-bold text-slate-900 outline-none"><option>Male</option><option>Female</option><option>Other</option></select>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Date of Birth *</label>
+                    <input type="date" name="dob" value={registrationForm.dob} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Gender *</label>
+                    <select name="gender" value={registrationForm.gender} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-bold text-slate-900 outline-none"><option>Male</option><option>Female</option><option>Other</option></select>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input type="tel" name="mobileNumber" value={registrationForm.mobileNumber} onChange={handleInputChange} placeholder="Mobile Number *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
@@ -222,10 +228,19 @@ export default function RegisterFlow() {
                   {/* FIXED: Mapped explicit name tracking hooks parameters directly to the state property layout context */}
                   <input type="text" disabled name="agentCode" value={registrationForm.agentCode} className="w-full h-10 bg-slate-100 border rounded-xl px-3 text-xs font-mono font-bold text-slate-500" />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <input type="text" name="branchLocation" value={registrationForm.branchLocation} onChange={handleInputChange} placeholder="Branch Location *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
-                  <input type="text" name="reportingManager" value={registrationForm.reportingManager} onChange={handleInputChange} placeholder="Reporting Manager *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
-                  <input type="date" name="joiningDate" value={registrationForm.joiningDate} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Branch Location *</label>
+                    <input type="text" name="branchLocation" value={registrationForm.branchLocation} onChange={handleInputChange} placeholder="e.g. Mumbai" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Reporting Manager *</label>
+                    <input type="text" name="reportingManager" value={registrationForm.reportingManager} onChange={handleInputChange} placeholder="Manager Name" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Joining Date *</label>
+                    <input type="date" name="joiningDate" value={registrationForm.joiningDate} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  </div>
                 </div>
               </div>
             )}
@@ -237,10 +252,19 @@ export default function RegisterFlow() {
                   <FileText className="w-4 h-4" />
                   <h3 className="text-xs font-black uppercase tracking-wider">Step 3 — Licensing & Regulatory Information</h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <input type="text" name="irdaiLicenseNumber" value={registrationForm.irdaiLicenseNumber} onChange={handleInputChange} placeholder="IRDAI License Number *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-mono outline-none" />
-                  <input type="date" name="licenseIssueDate" value={registrationForm.licenseIssueDate} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
-                  <input type="date" name="licenseExpiryDate" value={registrationForm.licenseExpiryDate} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">IRDAI License Number *</label>
+                    <input type="text" name="irdaiLicenseNumber" value={registrationForm.irdaiLicenseNumber} onChange={handleInputChange} placeholder="License Number" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-mono outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">License Issue Date</label>
+                    <input type="date" name="licenseIssueDate" value={registrationForm.licenseIssueDate} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">License Expiry Date</label>
+                    <input type="date" name="licenseExpiryDate" value={registrationForm.licenseExpiryDate} onChange={handleInputChange} className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-semibold outline-none" />
+                  </div>
                 </div>
                 <input type="text" name="panNumber" value={registrationForm.panNumber} onChange={handleInputChange} placeholder="PAN Number *" className="w-full h-10 bg-slate-50 border rounded-xl px-3 text-xs font-mono uppercase outline-none" />
               </div>

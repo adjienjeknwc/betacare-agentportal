@@ -210,7 +210,7 @@ export default function UnderwritingCases() {
           {/* Core Table Grid */}
           <div className="bg-white border border-slate-200 rounded-2xl shadow-3xs overflow-hidden">
             <div className="overflow-x-auto w-full">
-              <table className="w-full border-collapse text-left text-xs font-semibold">
+              <table className="hidden md:table w-full border-collapse text-left text-xs font-semibold">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 font-black uppercase tracking-wider text-[10px]">
                     <th className="py-3.5 px-4">Application ID</th>
@@ -251,6 +251,49 @@ export default function UnderwritingCases() {
                   )}
                 </tbody>
               </table>
+
+              {/* MOBILE CARDS VIEW */}
+              <div className="md:hidden divide-y divide-slate-100 bg-white">
+                {loading ? (
+                  <div className="p-8 text-center"><RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#0B1F5B]" /></div>
+                ) : filteredCases.length === 0 ? (
+                  <div className="p-8 text-center text-slate-400 font-bold bg-slate-50/30">No underwriting cases found in this view.</div>
+                ) : (
+                  filteredCases.map((item) => (
+                    <div key={item._id} className="p-4 space-y-3 hover:bg-slate-50/50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-xs font-bold text-[#0B1F5B]">#{item._id.slice(-6).toUpperCase()}</span>
+                        <span className="text-[10px] text-slate-400 font-bold">{new Date(item.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="text-left">
+                          <h4 className="font-extrabold text-sm text-slate-900">{item.customerName}</h4>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">{item.planName}</p>
+                        </div>
+                        <span className={`px-2.5 py-0.5 border text-[9px] font-black uppercase tracking-wide rounded-full inline-flex items-center justify-center gap-1 ${getStatusBadge(item.status)}`}>
+                          {item.status}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                        <div className="text-left">
+                          <span className="text-[9px] uppercase text-slate-400 block font-bold">Sum Assured</span>
+                          <span className="text-slate-900 font-bold text-xs">₹{item.sumAssured.toLocaleString('en-IN')}</span>
+                        </div>
+                        
+                        <button 
+                          onClick={() => setViewingCaseId(item._id)} 
+                          className="h-8 px-3 border border-slate-200 rounded-lg font-bold bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-1"
+                        >
+                          <span>Inspect</span>
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </main>
