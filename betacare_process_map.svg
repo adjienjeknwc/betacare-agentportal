@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="100%" height="100%" style="background-color: #F8FAFC; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+  <!-- Title Header -->
+  <rect x="0" y="0" width="1000" height="70" fill="#0B1F5B" />
+  <text x="30" y="42" fill="#FFFFFF" font-size="20" font-weight="bold" letter-spacing="1">BETACARE LIFE INSURANCE — PORTAL PROCESS MAP</text>
+  <text x="750" y="40" fill="#94A3B8" font-size="11" font-weight="bold" letter-spacing="0.5">BUSINESS PROCESS INTAKE & UNDERWRITING</text>
+
+  <!-- Swimlane Grid Lines -->
+  <line x1="0" y1="260" x2="1000" y2="260" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5 5" />
+  <line x1="0" y1="480" x2="1000" y2="480" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5 5" />
+
+  <!-- Swimlane Headers -->
+  <rect x="10" y="80" width="160" height="25" rx="5" fill="#E2E8F0" />
+  <text x="20" y="96" fill="#475569" font-size="10" font-weight="bold" letter-spacing="1">ROLE: SALES AGENT</text>
+
+  <rect x="10" y="270" width="160" height="25" rx="5" fill="#E2E8F0" />
+  <text x="20" y="286" fill="#475569" font-size="10" font-weight="bold" letter-spacing="1">ROLE: PORTAL ENGINE (BRE)</text>
+
+  <rect x="10" y="490" width="160" height="25" rx="5" fill="#E2E8F0" />
+  <text x="20" y="506" fill="#475569" font-size="10" font-weight="bold" letter-spacing="1">ROLE: UNDERWRITER</text>
+
+  <!-- LANE 1: SALES AGENT -->
+  <!-- Start Circle -->
+  <circle cx="80" cy="170" r="22" fill="#10B981" />
+  <text x="80" y="174" fill="#FFFFFF" font-size="10" font-weight="bold" text-anchor="middle">START</text>
+  
+  <!-- Connector 1 -->
+  <path d="M 102 170 L 140 170" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Step 1: Lead wizard -->
+  <rect x="140" y="130" width="160" height="80" rx="10" fill="#FFFFFF" stroke="#0B1F5B" stroke-width="2" />
+  <text x="220" y="160" fill="#0B1F5B" font-size="12" font-weight="bold" text-anchor="middle">1. Lead Intake Wizard</text>
+  <text x="220" y="178" fill="#64748B" font-size="9" text-anchor="middle">6-Stage Demographics,</text>
+  <text x="220" y="192" fill="#64748B" font-size="9" text-anchor="middle">Finances & Document Upload</text>
+
+  <!-- Connector 2 -->
+  <path d="M 300 170 L 340 170" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Step 2: Intake Validation -->
+  <rect x="340" y="130" width="150" height="80" rx="10" fill="#FFFFFF" stroke="#0D9488" stroke-width="2" />
+  <text x="415" y="160" fill="#0D9488" font-size="12" font-weight="bold" text-anchor="middle">2. Data Validation</text>
+  <text x="415" y="178" fill="#64748B" font-size="9" text-anchor="middle">Mandatory PAN/Aadhaar</text>
+  <text x="415" y="192" fill="#64748B" font-size="9" text-anchor="middle">checks & sign declarations</text>
+
+  <!-- Connector 3 (Goes down to Lane 2) -->
+  <path d="M 490 170 L 530 170 L 530 330" stroke="#94A3B8" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+
+  <!-- LANE 2: PORTAL ENGINE (BRE) -->
+  <!-- Step 3: Rules Engine -->
+  <rect x="450" y="330" width="160" height="80" rx="10" fill="#0B1F5B" />
+  <text x="530" y="360" fill="#FFFFFF" font-size="12" font-weight="bold" text-anchor="middle">3. Underwriting BRE</text>
+  <text x="530" y="378" fill="#94A3B8" font-size="9" text-anchor="middle">Risk Evaluator Engine</text>
+  <text x="530" y="392" fill="#94A3B8" font-size="9" text-anchor="middle">(Age, Assured Sum, Income)</text>
+
+  <!-- Connector 4 (To Decision Diamond) -->
+  <path d="M 530 410 L 530 435 L 340 435 L 340 370 L 410 370" stroke="#94A3B8" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+  
+  <!-- Decision Diamond (Represented as Polygon) -->
+  <polygon points="260,370 310,330 360,370 310,410" fill="#F59E0B" />
+  <text x="310" y="374" fill="#FFFFFF" font-size="9" font-weight="bold" text-anchor="middle">Risk Level?</text>
+
+  <!-- Path A: Standard (Auto-Approve) -->
+  <path d="M 260 370 L 210 370" stroke="#10B981" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="235" y="360" fill="#10B981" font-size="9" font-weight="bold" text-anchor="middle">Standard</text>
+
+  <!-- Auto-Approved State -->
+  <rect x="50" y="330" width="160" height="80" rx="10" fill="#D1FAE5" stroke="#10B981" stroke-width="2" />
+  <text x="130" y="360" fill="#065F46" font-size="12" font-weight="bold" text-anchor="middle">Auto-Approved</text>
+  <text x="130" y="378" fill="#065F46" font-size="9" text-anchor="middle">Auto-approved by BRE</text>
+  <text x="130" y="392" fill="#065F46" font-size="9" text-anchor="middle">Direct issuance path</text>
+
+  <!-- Path B: Flagged / High Risk (Escalate to Underwriter Lane 3) -->
+  <path d="M 310 410 L 310 530" stroke="#EF4444" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+  <text x="325" y="470" fill="#EF4444" font-size="9" font-weight="bold">Flagged</text>
+
+  <!-- LANE 3: UNDERWRITER -->
+  <!-- Step 4: Underwriter Queue -->
+  <rect x="230" y="530" width="160" height="80" rx="10" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2" />
+  <text x="310" y="560" fill="#7C3AED" font-size="12" font-weight="bold" text-anchor="middle">4. Underwriter Audit</text>
+  <text x="310" y="578" fill="#64748B" font-size="9" text-anchor="middle">Manual document review</text>
+  <text x="310" y="592" fill="#64748B" font-size="9" text-anchor="middle">& KYC confirmation</text>
+
+  <!-- Connector from Underwriter review to Decision -->
+  <path d="M 390 570 L 450 570" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Underwriter Decision -->
+  <polygon points="450,570 500,530 550,570 500,610" fill="#F59E0B" />
+  <text x="500" y="574" fill="#FFFFFF" font-size="8" font-weight="bold" text-anchor="middle">Approve?</text>
+
+  <!-- Path Underwriter Reject -->
+  <path d="M 500 610 L 500 650 L 80 650 L 80 192" stroke="#EF4444" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+  <text x="290" y="640" fill="#EF4444" font-size="9" font-weight="bold" text-anchor="middle">No (Reject & Edit Lead Details)</text>
+
+  <!-- Path Underwriter Approve -->
+  <path d="M 550 570 L 730 570 L 730 410" stroke="#10B981" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+  <text x="640" y="560" fill="#10B981" font-size="9" font-weight="bold" text-anchor="middle">Yes (Approve)</text>
+
+  <!-- Connector from Auto-Approve to Issuance Center -->
+  <path d="M 130 330 L 130 250 L 730 250 L 730 330" stroke="#10B981" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+
+  <!-- Policy Issuance (Systems Gate) -->
+  <rect x="650" y="330" width="160" height="80" rx="10" fill="#FFFFFF" stroke="#0B1F5B" stroke-width="2" />
+  <text x="730" y="360" fill="#0B1F5B" font-size="12" font-weight="bold" text-anchor="middle">5. Policy Issuance</text>
+  <text x="730" y="378" fill="#64748B" font-size="9" text-anchor="middle">Generate Unique Serial,</text>
+  <text x="730" y="392" fill="#64748B" font-size="9" text-anchor="middle">Create active policy record</text>
+
+  <!-- Connector to End -->
+  <path d="M 810 370 L 870 370" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- End State -->
+  <circle cx="910" cy="370" r="22" fill="#EF4444" />
+  <text x="910" y="374" fill="#FFFFFF" font-size="10" font-weight="bold" text-anchor="middle">END</text>
+
+  <!-- Definitions for SVG Markers (Arrows) -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 6 5 L 0 8.5 z" fill="#94A3B8" />
+    </marker>
+  </defs>
+</svg>
