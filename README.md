@@ -2,7 +2,7 @@
 ### 📊 A Business Analyst Case Study & Operational Dashboard System
 
 A modern, high-fidelity agent operational workspace hub and customer registration ecosystem designed to optimize insurance sales cycles, automate underwriting bottlenecks, and deliver real-time pipeline visibility for **Betacare Life Insurance**.
-notion case study -https://app.notion.com/p/Case-Study-Betacare-Life-Insurance-Agent-Portal-390be7f0e9f3805ca6c8db8d2335204b?source=copy_link
+
 ---
 
 ## 💼 Business Analyst Case Study
@@ -94,6 +94,8 @@ Portal Lead Intake -> Instant Validation -> Auto-Quote Gen -> Instant Underwriti
 | **Backend** | Node.js (Express) | Mongoose (MongoDB), JSON Web Tokens (JWT), CORS |
 | **Database** | MongoDB | Mongoose Schemas (User, Lead, Quote, Underwriting, Policy) |
 
+
+notion case study -https://app.notion.com/p/Case-Study-Betacare-Life-Insurance-Agent-Portal-390be7f0e9f3805ca6c8db8d2335204b?source=copy_link
 ---
 
 ## 🚀 Getting Started
