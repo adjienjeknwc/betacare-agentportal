@@ -27,7 +27,6 @@ import PolicyDetailsWorkspace from './pages/PolicyDetailsWorkspace';
 import ProposalSubmissionConfirmation from './pages/ProposalSubmissionConfirmation';
 import UnderwritingCases from './pages/UnderwritingCases';
 import CustomerDashboard from './pages/CustomerDashboard';
-import AboutProject from './pages/AboutProject';
 
 // Import Consolidated Lead Form Component
 import LeadIntakeForm from './components/registration/LeadIntakeForm';
@@ -96,7 +95,6 @@ export default function App() {
                   <Route path="policies/new" element={<NewPolicyWorkflowFixed />} />
                   <Route path="policies/:policyId" element={<PolicyDetailsWorkspace />} />
                   <Route path="settings" element={<Settings />} />
-                  <Route path="about-project" element={<AboutProject />} />
                 </Route>
 
                 {/* GLOBAL FALLBACK CATCH ALL ROUTE */}
