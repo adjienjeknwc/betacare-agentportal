@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   User, Mail, Phone, MapPin, ShieldCheck, Key, ToggleLeft, ToggleRight, 
-  Clock, CheckCircle, AlertTriangle, Monitor, Globe, MailCheck, Save, RefreshCw, Camera, X, Lock
+  Clock, CheckCircle, AlertTriangle, Monitor, Globe, MailCheck, Save, RefreshCw, Camera, X, Lock, LogOut
 } from 'lucide-react';
 
 export default function Settings() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-  const { currentAgent } = useAuth();
+  const { currentAgent, logout } = useAuth();
 
   // 1. Fetch the active user name string dynamically
   const currentAgentName = currentAgent 
@@ -170,7 +170,7 @@ export default function Settings() {
               setBiometric(false);
               showToast("Application parameters reset to system ledger defaults");
             }}
-            className="border border-slate-200 hover:bg-slate-50 bg-white text-slate-600 font-bold text-xs h-9 px-3 rounded-xl flex items-center gap-1.5 transition-colors focus:outline-none"
+            className="border border-slate-200 hover:bg-slate-50 bg-white text-slate-600 font-bold text-xs h-9 px-3 rounded-xl flex items-center gap-1.5 transition-colors focus:outline-none cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
             <span className="hidden sm:inline">Reset Settings</span>
@@ -179,10 +179,22 @@ export default function Settings() {
           <button 
             type="button" 
             onClick={handleSaveAll}
-            className="bg-[#0B1E46] hover:bg-[#07132e] text-white text-xs font-bold h-9 px-4 rounded-xl flex items-center gap-1.5 transition-all shadow-sm focus:outline-none"
+            className="bg-[#0B1E46] hover:bg-[#07132e] text-white text-xs font-bold h-9 px-4 rounded-xl flex items-center gap-1.5 transition-all shadow-sm focus:outline-none cursor-pointer"
           >
             <Save className="w-3.5 h-3.5" />
             <span>Save Changes</span>
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
+            className="border border-rose-250 hover:bg-rose-50 bg-white text-rose-600 font-bold text-xs h-9 px-3 rounded-xl flex items-center gap-1.5 transition-colors focus:outline-none cursor-pointer shadow-3xs"
+          >
+            <LogOut className="w-3.5 h-3.5 text-rose-500" />
+            <span className="hidden sm:inline">Exit Session</span>
           </button>
         </div>
       </header>
