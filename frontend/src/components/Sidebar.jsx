@@ -114,6 +114,18 @@ export default function Sidebar({ onClose }) {
                 </button>
               )}
 
+              {activeRole !== 'Underwriter' && (
+                <button
+                  onClick={() => handleNav('/lead-management/kyc-documents')}
+                  className={`w-full h-8 flex items-center gap-2.5 px-3 rounded-lg text-left transition-all ${
+                    isActive('/lead-management/kyc-documents') ? 'bg-blue-600/60 text-white font-extrabold' : 'hover:text-white'
+                  }`}
+                >
+                  <FileCheck className="w-3.5 h-3.5" />
+                  <span>Document Collection</span>
+                </button>
+              )}
+
               <button
                 onClick={() => handleNav('/policies/underwriting')}
                 className={`w-full h-8 flex items-center gap-2.5 px-3 rounded-lg text-left transition-all ${

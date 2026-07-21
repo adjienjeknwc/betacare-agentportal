@@ -23,17 +23,17 @@ export default function ProposalTracking() {
       let combined = [];
 
       // Add leads that are in draft stages
-      if (leadsRes) {
-        leadsRes.forEach(lead => {
+      if (leadsRes && Array.isArray(leadsRes.data)) {
+        leadsRes.data.forEach(lead => {
           const s = lead.status;
-          if (['Quote Accepted', 'Draft Proposal', 'Proposal Intake', 'Documents Uploaded'].includes(s)) {
+          if (['Quote Accepted', 'Draft Proposal', 'Proposal Intake', 'Documents Uploaded', 'Additional Docs Required'].includes(s)) {
             combined.push({
               _id: lead._id,
               customerName: lead.customerName,
               planName: lead.productInterest || 'Term Life Plan',
               sumAssured: lead.coverageAmount || 28500000,
               premium: 23840,
-              status: s === 'Quote Accepted' ? 'Draft' : 'Documents Pending',
+              status: s === 'Quote Accepted' ? 'Draft' : (s === 'Additional Docs Required' ? 'Additional Docs Required' : 'Documents Pending'),
               createdAt: lead.createdAt,
               isUnderwritingCase: false
             });
