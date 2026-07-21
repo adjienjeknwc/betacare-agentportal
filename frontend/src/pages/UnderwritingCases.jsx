@@ -499,6 +499,15 @@ export default function UnderwritingCases() {
                     <span>Reject Proposal</span>
                   </button>
                 </div>
+                <div className="pt-1">
+                  <button 
+                    onClick={() => handleUpdateStatus('Additional Docs Required')}
+                    className="w-full h-11 bg-purple-700 hover:bg-purple-800 text-white font-black text-xs rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <Upload className="w-4 h-4 text-purple-300" />
+                    <span>Request Additional Documents</span>
+                  </button>
+                </div>
               </div>
             )}
 

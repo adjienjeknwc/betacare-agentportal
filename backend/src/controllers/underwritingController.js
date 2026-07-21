@@ -4,7 +4,7 @@ const Lead = require('../models/Lead');
 
 exports.createCase = async (req, res, next) => {
   try {
-    const { leadId, customerName, planName, sumAssured, premium, kycDocuments } = req.body;
+    const { leadId, customerName, planName, sumAssured, premium, kycDocuments, proposalFormData } = req.body;
     
     // Verify lead ownership to prevent cross-agent case hijack
     const lead = await Lead.findOne({ _id: leadId, agentId: req.user.id });
@@ -21,7 +21,8 @@ exports.createCase = async (req, res, next) => {
       sumAssured: Number(sumAssured) || 0,
       premium: Number(premium) || 0,
       status: 'Pending Review',
-      kycDocuments
+      kycDocuments,
+      proposalFormData
     });
 
     // Update Lead status to reflect 'Proposal Submitted' (aligns with flow)
@@ -68,6 +69,7 @@ exports.updateCaseStatus = async (req, res, next) => {
     let leadStatus = 'Underwriting Review';
     if (status === 'Approved') leadStatus = 'Approved';
     if (status === 'Rejected') leadStatus = 'Rejected';
+    if (status === 'Additional Docs Required') leadStatus = 'Additional Docs Required';
     await Lead.findOneAndUpdate({ _id: updatedCase.leadId, agentId: req.user.id }, { status: leadStatus });
 
     return res.status(200).json({ success: true, data: updatedCase });
@@ -118,6 +120,34 @@ exports.runAiAudit = async (req, res, next) => {
 
       return res.status(200).json({ success: true, data: updatedCase });
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.resubmitCase = async (req, res, next) => {
+  try {
+    const { kycDocuments } = req.body;
+    
+    const updatedCase = await UnderwritingCase.findOneAndUpdate(
+      { _id: req.params.id, agentId: req.user.id },
+      { 
+        status: 'Pending Review', 
+        kycDocuments 
+      },
+      { new: true }
+    );
+
+    if (!updatedCase) {
+      return res.status(404).json({ success: false, message: 'Underwriting case not found or not authorized' });
+    }
+
+    await Lead.findOneAndUpdate(
+      { _id: updatedCase.leadId, agentId: req.user.id }, 
+      { status: 'Proposal Submitted' }
+    );
+
+    return res.status(200).json({ success: true, data: updatedCase });
   } catch (err) {
     next(err);
   }

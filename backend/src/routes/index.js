@@ -221,6 +221,7 @@ router.route('/underwriting')
   .get(protectAgentContext, underwritingCtrl.getCases);
 router.route('/underwriting/:id')
   .put(protectAgentContext, underwritingCtrl.updateCaseStatus);
+router.put('/underwriting/:id/resubmit', protectAgentContext, underwritingCtrl.resubmitCase);
 router.post('/underwriting/:id/ai-audit', protectAgentContext, underwritingCtrl.runAiAudit);
 
 // Policy Routes

@@ -12,6 +12,9 @@ export default function DocumentUpload() {
   const [quoteParams] = useState(location.state?.quoteParams || null);
   const [proposalFormData] = useState(location.state?.proposalFormData || null);
 
+  const reuploadContext = location.state?.reuploadContext || false;
+  const caseId = location.state?.caseId || null;
+
   const [toastMsg, setToastMsg] = useState('');
   
   // Document states
@@ -56,21 +59,39 @@ export default function DocumentUpload() {
 
     try {
       const token = localStorage.getItem('agent_token');
-      // Save documents to lead in backend database
-      await fetch(`/api/leads/${leadId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          status: 'Documents Uploaded',
-          proposalDocuments: docs
-        })
-      });
-      navigate(`/lead-management/proposal-review/${leadId}`, {
-        state: { lead, quoteParams, proposalFormData, proposalDocuments: docs }
-      });
+      if (reuploadContext && caseId) {
+        // Resubmit flow
+        await fetch(`/api/underwriting/${caseId}/resubmit`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            kycDocuments: docs
+          })
+        });
+        setToastMsg('Proposal resubmitted to Underwriter successfully!');
+        setTimeout(() => {
+          navigate('/lead-management/proposal-tracking');
+        }, 1500);
+      } else {
+        // Save documents to lead in backend database
+        await fetch(`/api/leads/${leadId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            status: 'Documents Uploaded',
+            proposalDocuments: docs
+          })
+        });
+        navigate(`/lead-management/proposal-review/${leadId}`, {
+          state: { lead, quoteParams, proposalFormData, proposalDocuments: docs }
+        });
+      }
     } catch (err) {
       console.error(err);
     }
@@ -87,11 +108,17 @@ export default function DocumentUpload() {
 
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40 shadow-3xs w-full">
         <div className="flex items-center gap-4">
-          <button type="button" onClick={() => navigate(`/lead-management/proposal-form/${leadId}`, { state: { lead, quoteParams } })} className="p-2 border border-slate-200 rounded-xl bg-white text-slate-500 hover:bg-slate-50">
+          <button 
+            type="button" 
+            onClick={() => navigate(reuploadContext ? '/lead-management/proposal-tracking' : `/lead-management/proposal-form/${leadId}`, { state: { lead, quoteParams } })} 
+            className="p-2 border border-slate-200 rounded-xl bg-white text-slate-500 hover:bg-slate-50"
+          >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="font-black text-[#0B1F5B] tracking-tight text-[20px] leading-none">Step 4 — Document Upload Center</h1>
+            <h1 className="font-black text-[#0B1F5B] tracking-tight text-[20px] leading-none">
+              {reuploadContext ? 'Document Re-upload Workspace' : 'Step 4 — Document Upload Center'}
+            </h1>
             <span className="text-slate-400 font-bold block mt-1 uppercase tracking-wider text-[9px]">ID Reference: {leadId.toUpperCase()}</span>
           </div>
         </div>
@@ -99,6 +126,18 @@ export default function DocumentUpload() {
 
       <main className="max-w-[800px] w-full mx-auto px-6 py-8 space-y-6">
         
+        {reuploadContext && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-4 text-xs font-bold flex items-start gap-2.5 shadow-sm text-left">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="text-sm font-black block">Action Required: Resubmit Missing Documents</span>
+              <p className="font-semibold text-amber-700/90 block mt-1 leading-relaxed">
+                The underwriting committee has flagged this proposal for missing or invalid records. Please upload the requested files below and click "Resubmit to Underwriter".
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Progress Card */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
           <div className="flex justify-between items-center select-none text-xs font-black uppercase text-[#0B1F5B] tracking-wider">
@@ -172,8 +211,11 @@ export default function DocumentUpload() {
 
         {/* Footer controls */}
         <div className="pt-4 border-t flex justify-between select-none">
-          <button onClick={() => navigate(`/lead-management/proposal-form/${leadId}`, { state: { lead, quoteParams } })} className="h-11 px-5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer text-xs">
-            <span>Back to Form</span>
+          <button 
+            onClick={() => navigate(reuploadContext ? '/lead-management/proposal-tracking' : `/lead-management/proposal-form/${leadId}`, { state: { lead, quoteParams } })} 
+            className="h-11 px-5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer text-xs"
+          >
+            <span>Cancel</span>
           </button>
           
           <button
@@ -183,7 +225,7 @@ export default function DocumentUpload() {
               uploadProgress.isEligible ? 'bg-[#0B1F5B] hover:bg-black text-white cursor-pointer' : 'bg-slate-300 text-slate-450 cursor-not-allowed opacity-60'
             }`}
           >
-            <span>Proceed to Proposal Review →</span>
+            <span>{reuploadContext ? 'Resubmit to Underwriter ➔' : 'Proceed to Proposal Review →'}</span>
           </button>
         </div>
 

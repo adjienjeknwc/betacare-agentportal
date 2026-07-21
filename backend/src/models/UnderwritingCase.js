@@ -21,7 +21,9 @@ const UnderwritingCaseSchema = new mongoose.Schema({
   aiNotes: {
     type: String,
     default: ''
-  }
+  },
+  proposalFormData: { type: Object },
+  kycDocuments: { type: Object }
 }, { timestamps: true });
 
 module.exports = mongoose.model('UnderwritingCase', UnderwritingCaseSchema);

@@ -169,6 +169,13 @@ export default function ProposalTracking() {
                             <CreditCard className="w-3 h-3" />
                             <span>Collect Premium</span>
                           </button>
+                        ) : p.status === 'Additional Docs Required' ? (
+                          <button 
+                            onClick={() => navigate(`/lead-management/document-upload/${p.leadId || p._id}`, { state: { reuploadContext: true, caseId: p._id } })}
+                            className="bg-purple-700 hover:bg-purple-800 text-white font-black text-[10px] uppercase px-3 py-1.5 rounded-lg mx-auto"
+                          >
+                            <span>Re-upload Docs</span>
+                          </button>
                         ) : p.status === 'Draft' ? (
                           <button 
                             onClick={() => navigate(`/lead-management/proposal-form/${p._id}`)}
