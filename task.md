@@ -1,9 +1,6 @@
-# Tasks - Underwriting Missing Documents Loop
+# Tasks - New Documents Module
 
-- [x] Update `UnderwritingCase.js` model schema to persist documents & form data
-- [x] Refactor `underwritingController.js` to save form data, handle doc requests and resubmission
-- [x] Mount `/resubmit` route in `backend/src/routes/index.js`
-- [x] Modify `UnderwritingCases.jsx` to render "Request Additional Documents" button
-- [x] Modify `ProposalTracking.jsx` to allow "Re-upload Documents" on flagged proposals
-- [x] Modify `DocumentUpload.jsx` to support re-upload banner and resubmit dispatch action
-- [x] Verify complete workflow loop locally on port 5173
+- [x] Create `DocumentsModule.jsx` page component with all requested sub-panels (metrics cards, search/filters, proposals table, slide-over drawer, underwriter remarks, notifications modal, activity timeline, empty state)
+- [x] Register path `/documents` in `App.jsx`
+- [x] Add navigation menu item `Documents` in `Sidebar.jsx`
+- [x] Verify complete user workspace and layout compliance locally

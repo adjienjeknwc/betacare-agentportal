@@ -37,6 +37,7 @@ import ProposalReview from './pages/ProposalReview';
 import ProposalSubmitted from './pages/ProposalSubmitted';
 import ProposalTracking from './pages/ProposalTracking';
 import PaymentGateway from './pages/PaymentGateway';
+import DocumentsModule from './pages/DocumentsModule';
 
 // Import Consolidated Lead Form Component
 import LeadIntakeForm from './components/registration/LeadIntakeForm';
@@ -89,6 +90,7 @@ export default function App() {
                   <Route path="lead-management/details/:leadId" element={<LeadDetails />} />
                   <Route path="lead-management/proposal-confirmation" element={<ProposalSubmissionConfirmation />} />
                   <Route path="lead-management/kyc-documents" element={<KYCDocumentVerification />} />
+                  <Route path="documents" element={<DocumentsModule />} />
                   
                   {/* CLEANED UP QUOTE INTERFACE ROUTE */}
                   <Route path="lead-management/generate-quote/:leadId" element={<QuoteManagement />} />
