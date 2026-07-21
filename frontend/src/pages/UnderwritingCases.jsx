@@ -79,6 +79,7 @@ export default function UnderwritingCases() {
     }
   };
 
+
   // Refactored Payment Action to execute securely against the backend API
   const executePaymentRemittance = async () => {
     if (!selectedCaseDetails) return;
@@ -397,98 +398,64 @@ export default function UnderwritingCases() {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Secure Premium Remittance Desk */}
-          {isPaymentExpanded && (
-            <div id="premium-remittance-deck" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 scroll-mt-6 animate-slide-up w-full">
-              <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
-                <div>
-                  <h2 className="text-xs font-black text-[#0B1F5B] uppercase tracking-wider">Step 12 — Premium Remittance Gateway</h2>
-                  <p className="text-[11px] text-slate-400 font-medium mt-0.5">Secure clearing gateway module for capturing initial policy deposits.</p>
-                </div>
-                <span className={`px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide rounded-md ${
-                  paymentCompleted ? 'bg-emerald-50 border border-emerald-200 text-emerald-700' : 'bg-amber-50 border border-amber-200 text-amber-700'
-                }`}>
-                  {paymentCompleted ? 'Remittance Success' : 'Awaiting Clearing'}
-                </span>
-              </div>
-
-              {!paymentCompleted ? (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                  <div className="lg:col-span-7 space-y-4">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Select Authorized Remittance Mode</h3>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-bold text-slate-700">
-                      {[
-                        { id: 'upi', title: 'Instant UPI Intent Node', desc: 'Google Pay, PhonePe, BHIM' },
-                        { id: 'netbanking', title: 'Net Banking Network', desc: 'Direct corporate banking link' },
-                        { id: 'card', title: 'Credit / Debit Card', desc: 'Visa, Mastercard, RuPay, Amex' },
-                        { id: 'nach', title: 'NACH / Auto-Debit Setup', desc: 'Auto-recurring annual cycles' }
-                      ].map((mode) => (
-                        <label 
-                          key={mode.id} 
-                          onClick={() => setSelectedPaymentMode(mode.id)}
-                          className={`p-3.5 border rounded-xl flex items-start gap-3 cursor-pointer transition-all ${
-                            selectedPaymentMode === mode.id ? 'border-[#0B1F5B] bg-blue-50/10' : 'border-slate-200 bg-white hover:bg-slate-50'
-                          }`}
-                        >
-                          <input type="radio" name="payment_mode" checked={selectedPaymentMode === mode.id} onChange={() => {}} className="mt-0.5 accent-[#0B1F5B]" />
-                          <div className="flex flex-col text-left">
-                            <span className="text-slate-900 font-extrabold">{mode.title}</span>
-                            <span className="text-[10px] text-slate-400 font-medium block mt-0.5">{mode.desc}</span>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-
-                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-start gap-3 text-xs font-medium text-slate-600">
-                      <Shield className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
-                      <div className="text-left">
-                        <span className="font-bold text-slate-900 block">PCI-DSS Level 1 Secure Vault Link</span>
-                        <p className="text-[11px] text-slate-400 mt-0.5">Remittance streams are fully tokenized point-to-point via asymmetric keys.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="lg:col-span-5 bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col justify-between h-full space-y-6">
-                    <div>
-                      <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-wider border-b border-slate-200 pb-2 mb-4 text-left">Premium Accounting Statement</h4>
-                      <div className="space-y-3 text-xs font-semibold text-slate-600">
-                        <div className="flex justify-between"><span>Base premium</span><span className="font-bold text-slate-900">₹{Math.round(selectedCaseDetails.premium / 1.18).toLocaleString('en-IN')}</span></div>
-                        <div className="flex justify-between"><span>Statutory GST (18%)</span><span className="font-bold text-slate-900">₹{Math.round(selectedCaseDetails.premium - (selectedCaseDetails.premium / 1.18)).toLocaleString('en-IN')}</span></div>
-                        <div className="pt-2 border-t border-slate-200 border-dashed flex justify-between text-slate-900 font-black text-sm">
-                          <span>Total premium payable</span>
-                          <span className="text-[#0B1F5B] font-black text-base">₹{selectedCaseDetails.premium.toLocaleString('en-IN')}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={executePaymentRemittance}
-                      className="w-full h-11 bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md hover:bg-emerald-800 transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <CreditCard className="w-4 h-4" />
-                      <span>Execute Secure Payment</span>
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-8 border border-emerald-100 bg-emerald-50/10 rounded-xl text-center space-y-4 animate-fade-in max-w-md mx-auto">
-                  <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto shadow-sm">
-                    <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-black text-slate-900">Initial Premium Token Captured</h3>
-                    <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
-                      Transaction has cleared bank settlement rails cleanly. Generating policy documents...
-                    </p>
-                  </div>
-                </div>
-              )}
+                   {/* Proposal Form & Medical Details */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
+              <ClipboardList className="w-4 h-4 text-[#0F478D]" />
+              <h2 className="text-xs font-black text-[#0B1F5B] uppercase tracking-wider">Submitted Proposal & Medical Information</h2>
             </div>
-          )}
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-700">
+              <div className="bg-slate-50 p-3 rounded-xl border">
+                <span className="text-[10px] text-slate-400 block uppercase">Nominee Information</span>
+                <span className="text-slate-900 block mt-1">Name: {selectedCaseDetails.proposalFormData?.nomineeName || 'Sneha Sharma'}</span>
+                <span className="text-slate-550 block">Relationship: {selectedCaseDetails.proposalFormData?.nomineeRelationship || 'Spouse'} (Age: {selectedCaseDetails.proposalFormData?.nomineeAge || '32'})</span>
+              </div>
+              <div className="bg-slate-50 p-3 rounded-xl border">
+                <span className="text-[10px] text-slate-400 block uppercase">Occupation & Income</span>
+                <span className="text-slate-900 block mt-1">Profession: {selectedCaseDetails.proposalFormData?.profession || 'Salaried Software Engineer'}</span>
+                <span className="text-slate-550 block">Inflow: ₹{(selectedCaseDetails.proposalFormData?.annualIncome || 1800000).toLocaleString('en-IN')} ({selectedCaseDetails.proposalFormData?.incomeSource || 'Salary'})</span>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 pt-3">
+              <span className="text-[10px] text-slate-400 block uppercase mb-2">Medical History Responses</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px] font-bold">
+                <div className="p-2.5 bg-slate-50 border rounded-xl">
+                  <span className="text-slate-400 block text-[9px] uppercase">Pre-existing Illness</span>
+                  <span className="text-slate-900 block mt-0.5">{selectedCaseDetails.proposalFormData?.hasPreExistingIllness || 'No'}</span>
+                </div>
+                <div className="p-2.5 bg-slate-50 border rounded-xl">
+                  <span className="text-slate-400 block text-[9px] uppercase">Chronic Condition</span>
+                  <span className="text-slate-900 block mt-0.5">{selectedCaseDetails.proposalFormData?.hasChronicAilments || 'No'}</span>
+                </div>
+                <div className="p-2.5 bg-slate-50 border rounded-xl">
+                  <span className="text-slate-400 block text-[9px] uppercase">Prior Hospitalization</span>
+                  <span className="text-slate-900 block mt-0.5">{selectedCaseDetails.proposalFormData?.hasHospitalizationHistory || 'No'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Submitted KYC Files */}
+            <div className="border-t border-slate-100 pt-3">
+              <span className="text-[10px] text-slate-400 block uppercase mb-2">Verified Documents Matrix</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-[11px] font-bold text-slate-700">
+                {selectedCaseDetails.kycDocuments ? (
+                  Object.entries(selectedCaseDetails.kycDocuments).filter(([_, val]) => !!val).map(([key, val]) => (
+                    <div key={key} className="p-2 border border-slate-150 rounded-xl flex items-center justify-between bg-white">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-slate-900 block truncate">{key.replace(/([A-Z])/g, ' $1')}</span>
+                        <span className="text-[9px] text-slate-400 block font-mono truncate">{val}</span>
+                      </div>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 ml-1"></span>
+                    </div>
+                  ))
+                ) : (
+                  <span className="text-slate-400 text-xs font-semibold">No KYC files attached.</span>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Sidebar Flow Actions Menu Panel */}
@@ -499,27 +466,15 @@ export default function UnderwritingCases() {
           <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
             <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-wider border-b pb-2">Required Agent Next Step</h3>
             
-            {selectedCaseDetails.status === 'Approved' && !isPaymentExpanded && (
+            {selectedCaseDetails.status === 'Approved' && (
               <div className="space-y-2">
                 <button 
-                  onClick={() => {
-                    setIsPaymentExpanded(true);
-                    setTimeout(() => {
-                      document.getElementById('premium-remittance-deck')?.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
-                  }}
-                  className="w-full h-11 bg-[#0B1F5B] text-white font-black text-xs rounded-xl shadow-sm flex items-center justify-center gap-2 hover:bg-[#0B1E46] transition-all cursor-pointer"
+                  onClick={() => navigate(`/policies/payment/${selectedCaseDetails._id}`)}
+                  className="w-full h-11 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   <span>Proceed to Premium Payment</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
-              </div>
-            )}
-
-            {selectedCaseDetails.status === 'Approved' && isPaymentExpanded && (
-              <div className="text-center p-4 bg-slate-50 border border-slate-200 border-dashed rounded-xl text-xs text-slate-500 font-bold flex items-center justify-center gap-2">
-                <RefreshCw className="w-3.5 h-3.5 text-[#0B1F5B] animate-spin" />
-                <span>Processing Payment Layout Below...</span>
               </div>
             )}
 
@@ -561,7 +516,7 @@ export default function UnderwritingCases() {
                 </button>
               </div>
             )}
-          </div>
+          </div>          </div>
 
           {/* Underwriting Process Audit */}
           <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">

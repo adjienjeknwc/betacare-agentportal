@@ -205,15 +205,23 @@ export default function QuoteManagement() {
     // First save the quote
     await handleSaveQuote();
     
-    // Set status to proposal in local and navigate
-    alert("Converting quote to Proposal. Proceeding to KYC Verification screen...");
-    navigate('/lead-management/kyc-documents', {
+    const quoteData = {
+      planName: `${policyType} (${activeInsurerName})`,
+      policyType,
+      sumAssured,
+      policyTerm,
+      premiumPaymentTerm,
+      premiumFrequency,
+      basePremium: premiumCalculation.basePremium,
+      taxAmount: premiumCalculation.gst,
+      totalPayable: premiumCalculation.finalPremium
+    };
+
+    alert("Quote saved! Proceeding to Quote Details Review...");
+    navigate(`/lead-management/quote-details/${leadId}`, {
       state: {
-        leadData: lead,
-        proposalSnapshot: {
-          productName: `${policyType} (${activeInsurerName})`,
-          customerName: clientName
-        }
+        lead,
+        quoteData
       }
     });
   };

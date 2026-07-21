@@ -7,10 +7,10 @@ exports.issuePolicy = async (req, res, next) => {
   try {
     const { caseId, paymentMode } = req.body;
     
-    // Find the underwriting case
-    const uCase = await UnderwritingCase.findById(caseId);
+    // Find the underwriting case (enforced agent context isolation check)
+    const uCase = await UnderwritingCase.findOne({ _id: caseId, agentId: req.user.id });
     if (!uCase) {
-      return res.status(404).json({ success: false, message: 'Underwriting case not found' });
+      return res.status(404).json({ success: false, message: 'Underwriting case not found or not authorized' });
     }
     
     if (uCase.status !== 'Approved') {
@@ -52,11 +52,11 @@ exports.issuePolicy = async (req, res, next) => {
       policyStatus: 'Active'
     });
 
-    // Update underwriting case and lead statuses to finalize
+    // Update underwriting case and lead statuses to finalize (restricted by owner agentId)
     uCase.status = 'Approved'; // Remains approved but is now connected to policy
     await uCase.save();
 
-    await Lead.findByIdAndUpdate(uCase.leadId, { status: 'Policy Issued' });
+    await Lead.findOneAndUpdate({ _id: uCase.leadId, agentId: req.user.id }, { status: 'Policy Issued' });
 
     return res.status(201).json({ success: true, data: newPolicy });
   } catch (err) {
@@ -77,9 +77,9 @@ exports.getPolicies = async (req, res, next) => {
 
 exports.getPolicyById = async (req, res, next) => {
   try {
-    const policy = await Policy.findOne({ policyNumber: req.params.policyNumber.toUpperCase() });
+    const policy = await Policy.findOne({ policyNumber: req.params.policyNumber.toUpperCase(), assignedAgent: req.user.id });
     if (!policy) {
-      return res.status(404).json({ success: false, message: 'Policy not found' });
+      return res.status(404).json({ success: false, message: 'Policy not found or not authorized' });
     }
     return res.status(200).json({ success: true, data: policy });
   } catch (err) {

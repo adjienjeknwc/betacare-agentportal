@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
 import { 
   LayoutDashboard, UserCheck, FolderKanban, ShieldAlert, 
-  FileCheck, ChevronDown, ChevronRight, Settings, LogOut, X
+  FileCheck, ChevronDown, ChevronRight, Settings, LogOut, X, FileText
 } from 'lucide-react';
 
 export default function Sidebar({ onClose }) {
@@ -99,6 +99,18 @@ export default function Sidebar({ onClose }) {
                 >
                   <FolderKanban className="w-3.5 h-3.5" />
                   <span>Quotations</span>
+                </button>
+              )}
+
+              {activeRole !== 'Underwriter' && (
+                <button
+                  onClick={() => handleNav('/lead-management/proposal-tracking')}
+                  className={`w-full h-8 flex items-center gap-2.5 px-3 rounded-lg text-left transition-all ${
+                    isActive('/lead-management/proposal-tracking') ? 'bg-blue-600/60 text-white font-extrabold' : 'hover:text-white'
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Proposal Tracking</span>
                 </button>
               )}
 

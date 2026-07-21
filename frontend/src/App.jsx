@@ -28,6 +28,16 @@ import ProposalSubmissionConfirmation from './pages/ProposalSubmissionConfirmati
 import UnderwritingCases from './pages/UnderwritingCases';
 import CustomerDashboard from './pages/CustomerDashboard';
 
+// Import New Redesigned Workflow Pages
+import QuoteDetails from './pages/QuoteDetails';
+import ProposalCreation from './pages/ProposalCreation';
+import ProposalForm from './pages/ProposalForm';
+import DocumentUpload from './pages/DocumentUpload';
+import ProposalReview from './pages/ProposalReview';
+import ProposalSubmitted from './pages/ProposalSubmitted';
+import ProposalTracking from './pages/ProposalTracking';
+import PaymentGateway from './pages/PaymentGateway';
+
 // Import Consolidated Lead Form Component
 import LeadIntakeForm from './components/registration/LeadIntakeForm';
 
@@ -82,6 +92,14 @@ export default function App() {
                   
                   {/* CLEANED UP QUOTE INTERFACE ROUTE */}
                   <Route path="lead-management/generate-quote/:leadId" element={<QuoteManagement />} />
+                  <Route path="lead-management/quote-details/:leadId" element={<QuoteDetails />} />
+                  <Route path="lead-management/create-proposal/:leadId" element={<ProposalCreation />} />
+                  <Route path="lead-management/proposal-form/:leadId" element={<ProposalForm />} />
+                  <Route path="lead-management/document-upload/:leadId" element={<DocumentUpload />} />
+                  <Route path="lead-management/proposal-review/:leadId" element={<ProposalReview />} />
+                  <Route path="lead-management/proposal-submitted/:leadId" element={<ProposalSubmitted />} />
+                  <Route path="lead-management/proposal-tracking" element={<ProposalTracking />} />
+                  <Route path="policies/payment/:caseId" element={<PaymentGateway />} />
                   
                   <Route path="lead-management/analytics" element={<LeadFunnelAnalytics />} />
                   <Route path="policies/underwriting" element={<UnderwritingCases />} />

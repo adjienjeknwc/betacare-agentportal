@@ -12,6 +12,15 @@ const UnderwritingCaseSchema = new mongoose.Schema({
     type: String, 
     default: 'Pending Review', 
     enum: ['Pending Review', 'Approved', 'Rejected', 'Medical Required', 'Additional Docs Required'] 
+  },
+  aiRiskRating: {
+    type: String,
+    default: 'Unassessed',
+    enum: ['Unassessed', 'Low', 'Medium', 'High']
+  },
+  aiNotes: {
+    type: String,
+    default: ''
   }
 }, { timestamps: true });
 

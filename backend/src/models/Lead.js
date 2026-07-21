@@ -15,7 +15,9 @@ const LeadSchema = new mongoose.Schema({
   coverageAmount: { type: Number, default: 28500000 },
   policyTerm: { type: Number, default: 35 },
   temperature: { type: String, enum: ['Hot', 'Warm', 'Cold'], default: 'Warm' },
-  status: { type: String, default: 'New Lead' }
+  status: { type: String, default: 'New Lead' },
+  aiAdviceRating: { type: String, default: 'Unassessed' },
+  aiAdviceNotes: { type: String, default: '' }
 }, { timestamps: true, strict: false });
 
 LeadSchema.index({ agentId: 1, createdAt: -1 });

@@ -1,10 +1,11 @@
 // src/pages/LeadDetails.jsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLeads } from '../context/LeadContext'; // Context binding
 import { 
   ArrowLeft, Phone, MessageSquare, Mail, User, Calendar, 
-  Briefcase, DollarSign, Activity, FileText, LayoutGrid, ShieldAlert 
+  Briefcase, DollarSign, Activity, FileText, LayoutGrid, ShieldAlert,
+  Shield, AlertCircle, RefreshCw
 } from 'lucide-react';
 
 export default function LeadDetails() {
@@ -12,40 +13,112 @@ export default function LeadDetails() {
   const { leadId } = useParams(); // Extract route param from link string
   const { masterLeadsData } = useLeads();
 
-  // ==========================================================================
-  // REAL-TIME LOOKUP ROUTER ENGINE
-  // Locates the specific lead record from memory based on URL parameter
-  // ==========================================================================
-  const activeLead = useMemo(() => {
-    // Look up lead matching the structural string signature format (handling '#' token prefixes)
-    return masterLeadsData.find(
-      lead => lead.id.replace('#', '') === leadId || lead.id === leadId
-    );
-  }, [masterLeadsData, leadId]);
+  const [lead, setLead] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const fetchLeadDetails = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('agent_token');
+      const res = await fetch(`/api/leads/single/${leadId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-agent-role': localStorage.getItem('agent_role') || 'Sales Agent'
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLead(data);
+      }
+    } catch (err) {
+      console.error('Error fetching lead details:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRunAiAdvice = async () => {
+    if (!lead || !lead._id) return;
+    try {
+      setAiLoading(true);
+      const token = localStorage.getItem('agent_token');
+      const res = await fetch(`/api/leads/${lead._id}/ai-audit`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-agent-role': localStorage.getItem('agent_role') || 'Sales Agent'
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('AI Sales Recommendation updated successfully!');
+        fetchLeadDetails();
+      } else {
+        alert(data.message || 'AI Advice generation failed.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert(`AI Advice Error: ${err.message}`);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (leadId && leadId.length === 24) {
+      fetchLeadDetails();
+    } else {
+      const contextLead = masterLeadsData.find(
+        l => l.id.replace('#', '') === leadId || l.id === leadId
+      );
+      if (contextLead) {
+        setLead({
+          _id: contextLead.id,
+          customerName: contextLead.name,
+          email: contextLead.email || 'client@insuranceportal.io',
+          phone: contextLead.mobileNumber || '+91 98765 43210',
+          dob: contextLead.dob || '1994-05-14',
+          gender: contextLead.gender || 'Male',
+          annualIncome: contextLead.annualIncome || 1200000,
+          city: contextLead.city || 'Mumbai',
+          state: contextLead.state || 'Maharashtra',
+          temperature: contextLead.temp || 'HOT',
+          status: contextLead.status || 'New Lead',
+          aiAdviceRating: contextLead.aiAdviceRating || 'Unassessed',
+          aiAdviceNotes: contextLead.aiAdviceNotes || ''
+        });
+      } else {
+        setLead(null);
+      }
+      setLoading(false);
+    }
+  }, [leadId, masterLeadsData]);
 
   // Comprehensive safety layout map to bridge fields gracefully if no object matches
   const resolvedProfile = useMemo(() => {
-    if (activeLead) {
+    if (lead) {
       return {
-        id: activeLead.id,
-        fullName: activeLead.name,
-        initials: activeLead.initials || 'NL',
-        avatarBg: activeLead.avatarBg || 'bg-blue-600',
-        interest: activeLead.interest || 'Term Life',
-        score: activeLead.score || '92',
-        temp: activeLead.temp || 'HOT',
-        mobileNumber: activeLead.mobileNumber || '+91 98765 43210',
-        email: activeLead.email || 'client@insuranceportal.io',
-        dob: activeLead.dob || '1994-05-14',
-        gender: activeLead.gender || 'Male',
-        occupation: activeLead.occupation || 'Salaried IT Professional',
-        annualIncome: activeLead.annualIncome || '1200000',
-        city: activeLead.city || 'Mumbai',
-        state: activeLead.state || 'Maharashtra'
+        id: lead._id,
+        fullName: lead.customerName,
+        initials: lead.customerName ? lead.customerName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'NL',
+        avatarBg: 'bg-blue-600',
+        interest: lead.productInterest || 'Term Life Plan',
+        score: lead.score || '85',
+        temp: lead.temperature || 'Warm',
+        mobileNumber: lead.phone || '+91 98765 43210',
+        email: lead.email || 'client@insuranceportal.io',
+        dob: lead.dob || '1994-05-14',
+        gender: lead.gender || 'Male',
+        occupation: lead.occupation || 'Salaried IT Professional',
+        annualIncome: lead.annualIncome || 1200000,
+        city: lead.city || 'Mumbai',
+        state: lead.state || 'Maharashtra',
+        aiAdviceRating: lead.aiAdviceRating || 'Unassessed',
+        aiAdviceNotes: lead.aiAdviceNotes || ''
       };
     }
 
-    // Default template fallback backup state block to safeguard UI integrity
     return {
       id: `#LD-${leadId || '8926'}`,
       fullName: 'Rohan Joshi',
@@ -59,11 +132,13 @@ export default function LeadDetails() {
       dob: '1994-05-14',
       gender: 'Male',
       occupation: 'Salaried IT Professional',
-      annualIncome: '1200000',
+      annualIncome: 1200000,
       city: 'Mumbai',
-      state: 'Maharashtra'
+      state: 'Maharashtra',
+      aiAdviceRating: 'Unassessed',
+      aiAdviceNotes: ''
     };
-  }, [activeLead, leadId]);
+  }, [lead, leadId]);
 
   const displayIncome = useMemo(() => {
     const rawIncome = parseFloat(resolvedProfile.annualIncome);
@@ -154,15 +229,59 @@ export default function LeadDetails() {
             </div>
           </div>
 
-          {/* AI ANALYTICS SIDEBAR */}
-          <div className="lg:col-span-4 bg-white border-2 border-blue-50 rounded-2xl p-5 space-y-4 shadow-sm text-xs font-semibold">
-            <div className="border-b pb-1.5 font-black text-[10px] text-[#0B1F5B] uppercase tracking-wider select-none">Predictive Recommendation Analytics</div>
-            <div className="bg-blue-50/30 border border-blue-100 p-3.5 rounded-xl space-y-1.5">
-              <span className="text-[9px] font-black uppercase text-[#0F478D] tracking-wider block">Underwriting Prediction:</span>
-              <p className="text-slate-700 font-medium leading-relaxed">High chance of conversion within 7 operational days based on interaction history trends.</p>
+          {/* AI POLICY & UPSELL ADVISOR */}
+          <div className="lg:col-span-4 bg-white border-2 border-indigo-50 rounded-2xl p-5 space-y-4 shadow-sm text-xs font-semibold">
+            <div className="border-b pb-1.5 flex items-center justify-between">
+              <span className="font-black text-[10px] text-[#0B1F5B] uppercase tracking-wider select-none">AI Policy & Upsell Advisor</span>
+              {resolvedProfile.aiAdviceRating && resolvedProfile.aiAdviceRating !== 'Unassessed' && (
+                <span className={`px-2 py-0.5 border text-[9px] font-black uppercase rounded ${
+                  resolvedProfile.aiAdviceRating === 'Optimal Fit' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' :
+                  resolvedProfile.aiAdviceRating === 'Low Fit' ? 'bg-rose-50 border-rose-100 text-rose-700' :
+                  'bg-amber-50 border-amber-100 text-amber-700'
+                }`}>
+                  {resolvedProfile.aiAdviceRating}
+                </span>
+              )}
             </div>
-            <div className="flex justify-between border-b pb-2 text-slate-500"><span>Conversion Probability:</span><span className="text-emerald-600 font-black">88%</span></div>
-            <div className="flex justify-between text-slate-500"><span>Risk Classification:</span><span className="text-slate-900 font-bold">Standard Low Risk Profile</span></div>
+
+            {aiLoading ? (
+              <div className="py-6 text-center space-y-2">
+                <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#0B1F5B]" />
+                <p className="text-[10px] text-slate-400 font-bold">Analyzing customer profile & packaging quote riders...</p>
+              </div>
+            ) : (!resolvedProfile.aiAdviceRating || resolvedProfile.aiAdviceRating === 'Unassessed') ? (
+              <div className="py-4 text-center space-y-3">
+                <p className="text-[11px] text-slate-400 font-semibold leading-relaxed">
+                  No sales advisor audit has been performed on this lead profile yet.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleRunAiAdvice}
+                  className="w-full h-9 bg-[#0B1F5B] hover:bg-black text-white font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Activity className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Analyze Lead Profile</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4 text-left">
+                <div className="p-3.5 bg-slate-50 border border-slate-100 rounded-xl space-y-1.5">
+                  <span className="text-[9px] font-black uppercase text-indigo-700 tracking-wider block">Agent Actionable Pitch Notes</span>
+                  <div className="text-slate-700 font-medium whitespace-pre-wrap leading-relaxed text-[11px] max-h-[300px] overflow-y-auto pr-1">
+                    {resolvedProfile.aiAdviceNotes}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleRunAiAdvice}
+                  className="w-full h-8 border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>Re-analyze Profile</span>
+                </button>
+              </div>
+            )}
           </div>
 
         </div>

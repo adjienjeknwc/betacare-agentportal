@@ -7,7 +7,8 @@ const {
   getLeadById,
   updateLead,
   deleteLead,
-  getMetrics
+  getMetrics,
+  runLeadAiAudit
 } = require('../controllers/leadController');
 
 router.route('/')
@@ -23,5 +24,7 @@ router.route('/single/:id')
 router.route('/:id')
   .put(protectAgentContext, updateLead)
   .delete(protectAgentContext, deleteLead);
+
+router.post('/:id/ai-audit', protectAgentContext, runLeadAiAudit);
 
 module.exports = router;

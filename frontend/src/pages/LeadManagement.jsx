@@ -99,7 +99,7 @@ export default function LeadManagement() {
               <tr><td colSpan="5" className="p-16 text-center text-slate-400 font-bold bg-slate-50/30">No leads found in this isolated account.</td></tr>
             ) : (
               leads.map(lead => (
-                <tr key={lead._id} className="hover:bg-slate-50/40 transition-colors">
+                <tr key={lead._id} onClick={() => navigate(`/lead-management/details/${lead._id}`)} className="hover:bg-slate-50/40 transition-colors cursor-pointer">
                   <td className="p-4 font-mono text-blue-600 font-bold truncate">#{lead._id.slice(-6).toUpperCase()}</td>
                   <td className="p-4 font-black text-slate-900">{lead.customerName}</td>
                   <td className="p-4 text-slate-500">{lead.productInterest}</td>
@@ -127,7 +127,7 @@ export default function LeadManagement() {
             <div className="p-8 text-center text-slate-400 font-bold bg-slate-50/30">No leads found in this isolated account.</div>
           ) : (
             leads.map(lead => (
-              <div key={lead._id} className="p-4 space-y-2 hover:bg-slate-50/40 transition-colors">
+              <div key={lead._id} onClick={() => navigate(`/lead-management/details/${lead._id}`)} className="p-4 space-y-2 hover:bg-slate-50/40 transition-colors cursor-pointer">
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-xs text-blue-600 font-bold">#{lead._id.slice(-6).toUpperCase()}</span>
                   <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded border uppercase ${

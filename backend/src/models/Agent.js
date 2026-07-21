@@ -14,7 +14,9 @@ const AgentSchema = new mongoose.Schema({
   // Optional multi-step metrics (Enforced with default fallback parameters to prevent validation dropouts)
   branchLocation: { type: String, default: 'Unassigned Branch' },
   reportingManager: { type: String, default: 'Unassigned Manager' },
-  agentType: { type: String, default: 'Individual Agent' }
+  agentType: { type: String, default: 'Individual Agent' },
+  resetOtp: { type: String, default: null },
+  resetOtpExpires: { type: Date, default: null }
 }, { 
   timestamps: true, 
   strict: false // CRITICAL: Tells Mongoose to save all other 7-step fields dynamically to Atlas
