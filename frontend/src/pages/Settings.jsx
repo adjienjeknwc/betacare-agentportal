@@ -145,12 +145,12 @@ export default function Settings() {
       )}
 
       {/* 1. TOP NAVBAR HEADER */}
-      <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 lg:sticky lg:top-0 lg:z-10 relative z-0 select-none">
+      <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0 lg:sticky lg:top-0 lg:z-10 relative z-0 select-none">
         <div className="flex items-center gap-3">
           <button 
             type="button" 
             onClick={() => navigate('/dashboard')}
-            className="p-1.5 border border-slate-200 rounded-xl bg-white text-slate-500 hover:bg-slate-50 transition-colors lg:hidden focus:outline-none cursor-pointer"
+            className="p-2 border border-slate-200 rounded-xl bg-white text-slate-500 hover:bg-slate-50 transition-colors lg:hidden focus:outline-none cursor-pointer"
             title="Return to Dashboard"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -159,13 +159,16 @@ export default function Settings() {
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">
               Dashboard / User Profile & Settings
             </span>
-            <h1 className="text-xl font-bold text-[#0B1F5B] tracking-tight leading-none mt-1">
+            <div className="text-2xl font-black text-[#0B1F5B] tracking-tight leading-tight mt-1">
               Profile & Settings
-            </h1>
+            </div>
+            <p className="text-xs text-slate-500 font-semibold mt-1">
+              Manage account preferences, security and application settings.
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button 
             type="button"
             onClick={() => {
@@ -211,12 +214,6 @@ export default function Settings() {
 
       {/* 2. MAIN CANVAS VIEWPORT CONTAINER */}
       <main className="flex-1 w-full max-w-[1450px] mx-auto px-6 py-6 overflow-y-auto space-y-5">
-        
-        <div className="w-full text-left select-none">
-          <p className="text-xs font-medium text-slate-500">
-            Manage account preferences, security and application settings.
-          </p>
-        </div>
 
         {/* TOP COMPONENT CARD HUB */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
