@@ -15,15 +15,88 @@ export default function UnderwritingCases() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [productFilter, setProductFilter] = useState('All');
-  
-  // Cases database states
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // States for billing remittance execution workflows
-  const [isPaymentExpanded, setIsPaymentExpanded] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
-  const [selectedPaymentMode, setSelectedPaymentMode] = useState('upi');
+
+  const mockUnderwritingCases = [
+    {
+      _id: 'UW-982451',
+      customerName: 'Rahul Sharma',
+      planName: 'Term Life Secure',
+      sumAssured: 28500000,
+      premium: 23840,
+      status: 'Pending Review',
+      createdAt: '2026-07-21T18:00:00Z',
+      proposalFormData: {
+        nomineeName: 'Sneha Sharma',
+        nomineeRelationship: 'Spouse',
+        nomineeAge: '32',
+        profession: 'Salaried Software Architect',
+        annualIncome: 1800000,
+        incomeSource: 'Salary',
+        hasPreExistingIllness: 'No',
+        hasChronicAilments: 'No',
+        hasHospitalizationHistory: 'No'
+      },
+      kycDocuments: {
+        panCard: 'PAN_MOCK_RAHUL.pdf',
+        aadhaarCard: 'AADHAAR_MOCK_RAHUL.pdf',
+        addressProof: 'UTILITY_BILL_RAHUL.pdf',
+        incomeProof: 'PAYSLIPS_RAHUL.pdf',
+        photograph: 'PHOTO_RAHUL.jpg'
+      }
+    },
+    {
+      _id: 'UW-982452',
+      customerName: 'Priya Patel',
+      planName: 'Whole Life Cover',
+      sumAssured: 50000000,
+      premium: 65400,
+      status: 'Additional Docs Required',
+      createdAt: '2026-07-20T12:00:00Z',
+      proposalFormData: {
+        nomineeName: 'Karan Patel',
+        nomineeRelationship: 'Spouse',
+        nomineeAge: '35',
+        profession: 'Corporate Vice President',
+        annualIncome: 4500000,
+        incomeSource: 'Salary',
+        hasPreExistingIllness: 'No',
+        hasChronicAilments: 'No',
+        hasHospitalizationHistory: 'No'
+      },
+      kycDocuments: {
+        panCard: 'PAN_MOCK_PRIYA.pdf',
+        aadhaarCard: 'AADHAAR_MOCK_PRIYA.pdf'
+      }
+    },
+    {
+      _id: 'UW-982453',
+      customerName: 'Amit Verma',
+      planName: 'ULIP',
+      sumAssured: 15000000,
+      premium: 32000,
+      status: 'Approved',
+      createdAt: '2026-07-19T09:00:00Z',
+      proposalFormData: {
+        nomineeName: 'Sunita Verma',
+        nomineeRelationship: 'Mother',
+        nomineeAge: '58',
+        profession: 'Business Owner',
+        annualIncome: 2400000,
+        incomeSource: 'Business Profits',
+        hasPreExistingIllness: 'No',
+        hasChronicAilments: 'No',
+        hasHospitalizationHistory: 'No'
+      },
+      kycDocuments: {
+        panCard: 'PAN_MOCK_AMIT.pdf',
+        aadhaarCard: 'AADHAAR_MOCK_AMIT.pdf',
+        incomeProof: 'ITR_AMIT.pdf'
+      }
+    }
+  ];
 
   const fetchCases = async () => {
     try {
@@ -36,11 +109,14 @@ export default function UnderwritingCases() {
         }
       });
       const data = await res.json();
-      if (data.success) {
-        setCases(data.data || []);
+      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        setCases(data.data);
+      } else {
+        setCases(mockUnderwritingCases);
       }
     } catch (err) {
       console.error(err);
+      setCases(mockUnderwritingCases);
     } finally {
       setLoading(false);
     }
@@ -50,7 +126,7 @@ export default function UnderwritingCases() {
     fetchCases();
   }, []);
 
-  const selectedCaseDetails = cases.find(c => c._id === viewingCaseId);
+  const selectedCaseDetails = cases.find(c => String(c._id) === String(viewingCaseId));
 
   // Update underwriting case status as underwriter
   const handleUpdateStatus = async (newStatus) => {
@@ -148,7 +224,7 @@ export default function UnderwritingCases() {
   };
 
   // --- MAIN TABLE VIEW ---
-  if (!viewingCaseId) {
+  if (!viewingCaseId || !selectedCaseDetails) {
     return (
       <div className="flex-1 min-h-screen bg-[#F5F7FB] text-left font-sans antialiased pb-12 w-full">
         <header className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 lg:sticky lg:top-0 lg:z-10 relative z-0 w-full">
