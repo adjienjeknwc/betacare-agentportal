@@ -28,8 +28,8 @@ export default function LeadManagement() {
   useEffect(() => { syncIsolatedData(); }, []);
 
   return (
-    <div className="flex-1 min-h-screen bg-[#F8FAFC] p-8 text-left text-xs text-slate-700 select-none">
-      <div className="flex justify-between items-center mb-8">
+    <div className="flex-1 min-h-screen bg-[#F8FAFC] p-4 sm:p-6 lg:p-8 text-left text-xs text-slate-700 select-none">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Lead Management</h1>
           <p className="text-slate-400 font-medium mt-1">Live Tenant Database Console Grid Profile Scope Context</p>
