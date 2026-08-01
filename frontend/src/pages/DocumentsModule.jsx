@@ -406,12 +406,10 @@ export default function DocumentsModule() {
         </div>
 
         {/* Proposals Data Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="w-full">
           
           {/* Main Table view */}
-          <div className={`bg-white border border-slate-200 rounded-2xl shadow-3xs overflow-hidden transition-all duration-300 ${
-            selectedProposalId ? 'lg:col-span-7' : 'lg:col-span-12'
-          }`}>
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-3xs overflow-hidden w-full">
             <div className="overflow-x-auto w-full">
               <table className="w-full border-collapse text-left text-xs font-semibold">
                 <thead>
@@ -439,7 +437,7 @@ export default function DocumentsModule() {
                       <tr 
                         key={p._id} 
                         className={`hover:bg-slate-50/50 transition-colors cursor-pointer ${
-                          selectedProposalId === p._id ? 'bg-[#0B1F5B]/5 hover:bg-[#0B1F5B]/5' : ''
+                          selectedProposalId === p._id ? 'bg-[#0B1F5B]/5' : ''
                         }`}
                         onClick={() => setSelectedProposalId(p._id)}
                       >
@@ -458,7 +456,7 @@ export default function DocumentsModule() {
                         <td className="py-4 px-4 text-center" onClick={e => e.stopPropagation()}>
                           <button 
                             onClick={() => setSelectedProposalId(p._id)}
-                            className="bg-[#0B1F5B] hover:bg-black text-white font-black text-[10px] uppercase px-3 py-1.5 rounded-lg mx-auto"
+                            className="bg-[#0B1F5B] hover:bg-black text-white font-black text-[10px] uppercase px-3 py-1.5 rounded-lg mx-auto cursor-pointer"
                           >
                             <span>View</span>
                           </button>
@@ -471,174 +469,183 @@ export default function DocumentsModule() {
             </div>
           </div>
 
-          {/* Right Slide-over / Details Panel inside main layout */}
-          {selectedProposalId && selectedProposal && (
-            <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl shadow-md p-5 space-y-6 relative animate-slide-up">
-              
-              {/* Close panel cross */}
-              <button 
-                onClick={() => setSelectedProposalId(null)}
-                className="absolute top-4 right-4 p-1.5 rounded-xl border hover:bg-slate-50 text-slate-400 hover:text-slate-700 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <div className="space-y-1.5 border-b pb-4 text-left">
-                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Proposal Workspace File</span>
-                <h3 className="text-base font-black text-[#0B1F5B] tracking-tight">{selectedProposal.customerName}</h3>
-                <span className="text-slate-400 font-mono block text-[9px] tracking-widest font-black uppercase mt-0.5">Ref: #{selectedProposal._id}</span>
-              </div>
-
-              {/* Customer Information & Proposal Info */}
-              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-650 text-left border-b pb-4">
-                <div>
-                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Email Address</span>
-                  <span className="text-slate-900 font-bold block mt-0.5 truncate">{selectedProposal.email}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Phone Number</span>
-                  <span className="text-slate-900 font-bold block mt-0.5">{selectedProposal.phone}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Product Scheme</span>
-                  <span className="text-slate-900 font-bold block mt-0.5">{selectedProposal.policyType}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Fulfillment Stage</span>
-                  <span className="text-slate-900 font-bold block mt-0.5">{selectedProposal.status}</span>
-                </div>
-              </div>
-
-              {/* Dedicated Underwriter Remarks Card */}
-              {selectedProposal.underwriterRemarks && (
-                <div className="bg-rose-50/20 border border-rose-150 rounded-xl p-4 space-y-3 text-left">
-                  <div className="flex justify-between items-center select-none text-[10px] font-black uppercase tracking-wider text-rose-800">
-                    <span className="flex items-center gap-1"><ShieldAlert className="w-3.5 h-3.5" /> Underwriter Remarks</span>
-                    <span className="px-2 py-0.5 bg-rose-100 rounded text-[9px]">Priority: {selectedProposal.underwriterRemarks.priority}</span>
-                  </div>
-                  <div className="text-xs space-y-2 text-slate-700">
-                    <div>
-                      <span className="text-slate-400 text-[9px] uppercase block">Requested Corrections</span>
-                      <p className="font-bold text-slate-900 mt-0.5 leading-relaxed">{selectedProposal.underwriterRemarks.corrections}</p>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 text-[9px] uppercase block">Missing / Flagged Docs</span>
-                      <span className="font-semibold text-rose-700 mt-0.5 block">{selectedProposal.underwriterRemarks.missing}</span>
-                    </div>
-                    <div className="flex justify-between items-center pt-1 border-t border-rose-100 text-[10px] font-black uppercase text-slate-400">
-                      <span>Deadline to Resubmit</span>
-                      <span className="text-rose-800">{selectedProposal.underwriterRemarks.deadline}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Documents Required Checklist */}
-              <div className="space-y-3 text-left">
-                <span className="text-[10px] font-black uppercase text-slate-450 tracking-wider block border-b pb-1.5 select-none">Required Documents Checklist</span>
-                <div className="space-y-2.5">
-                  {[
-                    { key: 'panCard', label: 'PAN Card Proof', req: true },
-                    { key: 'aadhaarCard', label: 'Aadhaar Card Proof', req: true },
-                    { key: 'addressProof', label: 'Utility Bill Address Proof', req: false },
-                    { key: 'incomeProof', label: 'Income Verification Proof', req: true },
-                    { key: 'photograph', label: 'Photograph (Applicant)', req: true }
-                  ].map(doc => (
-                    <div key={doc.key} className="p-3 border border-slate-100 bg-slate-50/40 rounded-xl flex items-center justify-between text-xs font-semibold">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-slate-900 font-extrabold block truncate">
-                          {doc.label} {doc.req && <span className="text-rose-500 font-black">*</span>}
-                        </span>
-                        <span className="text-[9px] font-mono block truncate mt-0.5 select-all text-slate-450">
-                          {selectedProposal.documents[doc.key] || 'Awaiting file upload'}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 shrink-0 ml-3">
-                        {selectedProposal.documents[doc.key] ? (
-                          <button 
-                            onClick={() => handleDocMockUpload(doc.key)}
-                            className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100"
-                            title="Replace File"
-                          >
-                            <Upload className="w-3.5 h-3.5" />
-                          </button>
-                        ) : (
-                          <button 
-                            onClick={() => handleDocMockUpload(doc.key)}
-                            className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold px-2 py-1 rounded-lg text-[9px] uppercase tracking-wider flex items-center gap-1"
-                          >
-                            <Upload className="w-3 h-3" />
-                            <span>Upload</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Notify Customer Block */}
-              <div className="pt-4 border-t border-slate-100 flex gap-3 text-xs font-bold select-none">
-                <button
-                  type="button"
-                  onClick={handleOpenNotify}
-                  className="flex-1 h-11 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <PhoneCall className="w-4 h-4 text-slate-450 animate-pulse" />
-                  <span>Notify Customer</span>
-                </button>
-
-                {selectedProposal.status === 'Ready to Submit' && (
-                  <button
-                    onClick={() => {
-                      showToast('Proposal resubmitted to Underwriter Case queue!');
-                      setProposals(prev => prev.map(p => {
-                        if (p._id === selectedProposalId) {
-                          return {
-                            ...p,
-                            status: 'Submitted',
-                            underwriterRemarks: null,
-                            timeline: [
-                              { title: 'Proposal Resubmitted', time: new Date().toISOString(), desc: 'Resubmitted for final clearance review.' },
-                              ...p.timeline
-                            ]
-                          };
-                        }
-                        return p;
-                      }));
-                    }}
-                    className="flex-1 h-11 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <ShieldCheck className="w-4 h-4 text-emerald-100" />
-                    <span>Resubmit Proposal</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Activity Timeline */}
-              <div className="border-t border-slate-100 pt-4 text-left space-y-4">
-                <span className="text-[10px] font-black uppercase text-slate-450 tracking-wider block select-none">Activity Timeline</span>
-                <div className="space-y-4 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100 pl-4">
-                  {selectedProposal.timeline.map((event, idx) => (
-                    <div key={idx} className="relative text-xs text-left font-semibold">
-                      <span className="absolute -left-[20px] top-1 w-2 h-2 rounded-full bg-slate-400 border border-white"></span>
-                      <div className="flex flex-col">
-                        <span className="text-slate-900 font-extrabold">{event.title}</span>
-                        <span className="text-[9px] text-slate-400 font-semibold mt-0.5">{new Date(event.time).toLocaleString()}</span>
-                        <p className="text-[10px] text-slate-450 mt-1 leading-normal font-medium">{event.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-          )}
-
         </div>
 
       </main>
+
+      {/* Slide-over Drawer Modal Overlay */}
+      {selectedProposalId && selectedProposal && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-50 flex justify-end transition-opacity"
+          onClick={() => setSelectedProposalId(null)}
+        >
+          <div 
+            className="bg-white w-full max-w-lg md:max-w-xl h-full overflow-y-auto p-6 space-y-6 shadow-2xl relative text-left border-l border-slate-200"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header bar of drawer */}
+            <div className="flex items-start justify-between border-b pb-4">
+              <div className="space-y-1 text-left">
+                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Proposal Workspace File</span>
+                <h3 className="text-xl font-black text-[#0B1F5B] tracking-tight">{selectedProposal.customerName}</h3>
+                <span className="text-slate-400 font-mono block text-[10px] tracking-widest font-black uppercase mt-0.5">Ref: #{selectedProposal._id}</span>
+              </div>
+              <button 
+                onClick={() => setSelectedProposalId(null)}
+                className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-700 cursor-pointer transition-colors"
+                title="Close Workspace"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Customer Information & Proposal Info */}
+            <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-650 text-left border-b pb-4">
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Email Address</span>
+                <span className="text-slate-900 font-bold block mt-0.5 truncate">{selectedProposal.email}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Phone Number</span>
+                <span className="text-slate-900 font-bold block mt-0.5">{selectedProposal.phone}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Product Scheme</span>
+                <span className="text-slate-900 font-bold block mt-0.5">{selectedProposal.policyType}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[9px] uppercase tracking-wider block">Fulfillment Stage</span>
+                <span className="text-slate-900 font-bold block mt-0.5">{selectedProposal.status}</span>
+              </div>
+            </div>
+
+            {/* Dedicated Underwriter Remarks Card */}
+            {selectedProposal.underwriterRemarks && (
+              <div className="bg-rose-50/20 border border-rose-150 rounded-xl p-4 space-y-3 text-left">
+                <div className="flex justify-between items-center select-none text-[10px] font-black uppercase tracking-wider text-rose-800">
+                  <span className="flex items-center gap-1"><ShieldAlert className="w-3.5 h-3.5" /> Underwriter Remarks</span>
+                  <span className="px-2 py-0.5 bg-rose-100 rounded text-[9px]">Priority: {selectedProposal.underwriterRemarks.priority}</span>
+                </div>
+                <div className="text-xs space-y-2 text-slate-700">
+                  <div>
+                    <span className="text-slate-400 text-[9px] uppercase block">Requested Corrections</span>
+                    <p className="font-bold text-slate-900 mt-0.5 leading-relaxed">{selectedProposal.underwriterRemarks.corrections}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 text-[9px] uppercase block">Missing / Flagged Docs</span>
+                    <span className="font-semibold text-rose-700 mt-0.5 block">{selectedProposal.underwriterRemarks.missing}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1 border-t border-rose-100 text-[10px] font-black uppercase text-slate-400">
+                    <span>Deadline to Resubmit</span>
+                    <span className="text-rose-800">{selectedProposal.underwriterRemarks.deadline}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Documents Required Checklist */}
+            <div className="space-y-3 text-left">
+              <span className="text-[10px] font-black uppercase text-slate-450 tracking-wider block border-b pb-1.5 select-none">Required Documents Checklist</span>
+              <div className="space-y-2.5">
+                {[
+                  { key: 'panCard', label: 'PAN Card Proof', req: true },
+                  { key: 'aadhaarCard', label: 'Aadhaar Card Proof', req: true },
+                  { key: 'addressProof', label: 'Utility Bill Address Proof', req: false },
+                  { key: 'incomeProof', label: 'Income Verification Proof', req: true },
+                  { key: 'photograph', label: 'Photograph (Applicant)', req: true }
+                ].map(doc => (
+                  <div key={doc.key} className="p-3 border border-slate-100 bg-slate-50/40 rounded-xl flex items-center justify-between text-xs font-semibold">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-slate-900 font-extrabold block truncate">
+                        {doc.label} {doc.req && <span className="text-rose-500 font-black">*</span>}
+                      </span>
+                      <span className="text-[9px] font-mono block truncate mt-0.5 select-all text-slate-450">
+                        {selectedProposal.documents[doc.key] || 'Awaiting file upload'}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
+                      {selectedProposal.documents[doc.key] ? (
+                        <button 
+                          onClick={() => handleDocMockUpload(doc.key)}
+                          className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 cursor-pointer"
+                          title="Replace File"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => handleDocMockUpload(doc.key)}
+                          className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold px-2.5 py-1 rounded-lg text-[9px] uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                        >
+                          <Upload className="w-3 h-3" />
+                          <span>Upload</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Notify Customer Block */}
+            <div className="pt-4 border-t border-slate-100 flex gap-3 text-xs font-bold select-none">
+              <button
+                type="button"
+                onClick={handleOpenNotify}
+                className="flex-1 h-11 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <PhoneCall className="w-4 h-4 text-slate-450 animate-pulse" />
+                <span>Notify Customer</span>
+              </button>
+
+              {selectedProposal.status === 'Ready to Submit' && (
+                <button
+                  onClick={() => {
+                    showToast('Proposal resubmitted to Underwriter Case queue!');
+                    setProposals(prev => prev.map(p => {
+                      if (p._id === selectedProposalId) {
+                        return {
+                          ...p,
+                          status: 'Submitted',
+                          underwriterRemarks: null,
+                          timeline: [
+                            { title: 'Proposal Resubmitted', time: new Date().toISOString(), desc: 'Resubmitted for final clearance review.' },
+                            ...p.timeline
+                          ]
+                        };
+                      }
+                      return p;
+                    }));
+                  }}
+                  className="flex-1 h-11 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <ShieldCheck className="w-4 h-4 text-emerald-100" />
+                  <span>Resubmit Proposal</span>
+                </button>
+              )}
+            </div>
+
+            {/* Activity Timeline */}
+            <div className="border-t border-slate-100 pt-4 text-left space-y-4">
+              <span className="text-[10px] font-black uppercase text-slate-450 tracking-wider block select-none">Activity Timeline</span>
+              <div className="space-y-4 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100 pl-4">
+                {selectedProposal.timeline.map((event, idx) => (
+                  <div key={idx} className="relative text-xs text-left font-semibold">
+                    <span className="absolute -left-[20px] top-1 w-2 h-2 rounded-full bg-slate-400 border border-white"></span>
+                    <div className="flex flex-col">
+                      <span className="text-slate-900 font-extrabold">{event.title}</span>
+                      <span className="text-[9px] text-slate-400 font-semibold mt-0.5">{new Date(event.time).toLocaleString()}</span>
+                      <p className="text-[10px] text-slate-450 mt-1 leading-normal font-medium">{event.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* Notify Customer Modal */}
       {isNotifyOpen && selectedProposal && (
